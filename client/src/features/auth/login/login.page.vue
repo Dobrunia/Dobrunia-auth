@@ -101,13 +101,11 @@ async function handleSubmit() {
       },
     });
 
-    // Store tokens (for now, just redirect - token storage will be improved later)
+    // Store tokens from successful login response
     const data = response as { data?: { access_token: string; refresh_token: string } };
-    if (data.data?.access_token) {
-      localStorage.setItem('access_token', data.data.access_token);
-    }
-    if (data.data?.refresh_token) {
-      localStorage.setItem('refresh_token', data.data.refresh_token);
+    if (data.data?.access_token && data.data?.refresh_token) {
+      const { storeTokens } = await import('../../../shared/api/request');
+      storeTokens(data.data.access_token, data.data.refresh_token);
     }
 
     // Redirect to home after successful login

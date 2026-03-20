@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import { config } from '../../config/env.config';
 import { TOKEN_TTL } from '../../constants/auth.constants';
+import { signingKeysService } from './signing-keys.service';
+import type { SigningKey } from '../../types/signing-key.types';
 
 export interface JwtPayload {
   sub: number; // user id
@@ -12,6 +14,7 @@ export interface JwtPayload {
   scope?: string;
   client_id?: string;
   session_id?: number;
+  kid?: string; // key id
 }
 
 export function generateAccessToken(payload: {
@@ -34,12 +37,47 @@ export function generateAccessToken(payload: {
     session_id: payload.session_id,
   };
 
+  // For now, use the static secret from config
+  // In production with key rotation, use signingKeysService.getActiveKey()
   return jwt.sign(tokenPayload, config.jwt.accessSecret);
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
+  // For key rotation support, try all validation keys
+  // For now, use the static secret
   const verified = jwt.verify(token, config.jwt.accessSecret);
   return verified as unknown as JwtPayload;
+}
+
+/**
+ * Verify token with a specific key
+ */
+export function verifyTokenWithKey(token: string, key: SigningKey): JwtPayload {
+  const verified = jwt.verify(token, key.key_secret);
+  return verified as unknown as JwtPayload;
+}
+
+/**
+ * Verify token trying multiple keys (for key rotation)
+ */
+export function verifyTokenWithAnyKey(token: string, keys: SigningKey[]): JwtPayload {
+  let lastError: Error | null = null;
+
+  for (const key of keys) {
+    try {
+      const verified = jwt.verify(token, key.key_secret);
+      return verified as unknown as JwtPayload;
+    } catch (error) {
+      lastError = error as Error;
+    }
+  }
+
+  // If all keys failed, throw the last error
+  if (lastError) {
+    throw lastError;
+  }
+
+  throw new Error('No valid key found for token verification');
 }
 
 export function generateRefreshToken(): string {

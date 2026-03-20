@@ -19,6 +19,14 @@ export class RefreshTokensRepository {
     return tokens[0] || null;
   }
 
+  async findAllActive(): Promise<RefreshToken[]> {
+    const pool = await getDatabasePool();
+    const [rows] = await pool.query(
+      'SELECT * FROM refresh_tokens WHERE revoked_at IS NULL AND expires_at > NOW() ORDER BY created_at DESC'
+    );
+    return rows as RefreshToken[];
+  }
+
   async create(input: RefreshTokenCreateInput): Promise<RefreshToken> {
     const pool = await getDatabasePool();
     const [result] = await pool.query(

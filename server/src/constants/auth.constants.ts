@@ -15,6 +15,7 @@ export const TOKEN_TTL = {
   REFRESH_TOKEN: '30d',
   EMAIL_VERIFICATION: '24h',
   PASSWORD_RESET: '1h',
+  AUTHORIZATION_CODE: '10m',
 } as const;
 
 export const PASSWORD_POLICY = {
