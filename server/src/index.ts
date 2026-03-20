@@ -3,6 +3,8 @@ import { config } from './config';
 import { getDatabasePool, closeDatabasePool } from './db/database';
 import { runMigrations } from './db/migrate';
 import { healthRouter } from './modules/health';
+import { authRouter } from './modules/auth';
+import { usersRouter } from './modules/users';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -16,6 +18,12 @@ async function bootstrap(): Promise<void> {
     // Routes
     app.use(healthRouter);
     console.log('Health endpoint registered');
+
+    app.use(authRouter);
+    console.log('Auth endpoints registered');
+
+    app.use(usersRouter);
+    console.log('Users endpoints registered');
 
     // Connect to database
     await getDatabasePool();
