@@ -22,8 +22,8 @@ function buildApp() {
 
 const CLIENT_ROW = {
   id: '11111111-1111-4111-8111-111111111111',
-  slug: 'shop-web',
-  name: 'Shop Web',
+  slug: 'dobrunia-auth-web',
+  name: 'Dobrunia Auth Web',
   oauth_redirect_uris: ['http://localhost:5173/oauth/callback'],
 };
 
@@ -52,7 +52,7 @@ describe('POST /oauth/token', () => {
               user_id: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
               session_id: 'ssssssss-ssss-4sss-ssss-ssssssssssss',
               redirect_uri: 'http://localhost:5173/oauth/callback',
-              client_slug: 'shop-web',
+              client_slug: 'dobrunia-auth-web',
             },
           ],
         ])
@@ -70,7 +70,7 @@ describe('POST /oauth/token', () => {
         grant_type: 'authorization_code',
         code: plainCode,
         redirect_uri: 'http://localhost:5173/oauth/callback',
-        client_id: 'shop-web',
+        client_id: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(200);
@@ -92,7 +92,7 @@ describe('POST /oauth/token', () => {
         grant_type: 'implicit',
         code: 'x',
         redirect_uri: 'http://localhost/cb',
-        client_id: 'shop-web',
+        client_id: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(400);
@@ -132,7 +132,7 @@ describe('GET /oauth/authorize', () => {
     } as never);
 
     const q = new URLSearchParams({
-      client_id: 'shop-web',
+      client_id: 'dobrunia-auth-web',
       redirect_uri: 'http://localhost:5173/oauth/callback',
       response_type: 'code',
     });
@@ -161,7 +161,7 @@ describe('GET /oauth/authorize', () => {
     } as never);
 
     const q = new URLSearchParams({
-      client_id: 'shop-web',
+      client_id: 'dobrunia-auth-web',
       redirect_uri: 'http://localhost:5173/oauth/callback',
       response_type: 'code',
     });

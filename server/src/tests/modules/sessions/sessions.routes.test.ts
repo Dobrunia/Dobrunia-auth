@@ -49,8 +49,8 @@ describe('GET /sessions', () => {
       created_at: new Date('2026-01-01T10:00:00.000Z'),
       revoked_at: null,
       revoke_reason: null,
-      client_slug: 'shop-web',
-      client_name: 'Shop Web',
+      client_slug: 'dobrunia-auth-web',
+      client_name: 'Dobrunia Auth Web',
     };
     const mockConnection = {
       release: vi.fn(),
@@ -67,7 +67,7 @@ describe('GET /sessions', () => {
     expect(res.status).toBe(200);
     expect(res.body.sessions).toHaveLength(1);
     expect(res.body.sessions[0].id).toBe(SESS_ID);
-    expect(res.body.sessions[0].clientSlug).toBe('shop-web');
+    expect(res.body.sessions[0].clientSlug).toBe('dobrunia-auth-web');
     expect(res.body.sessions[0].lastSeenAt).toBe('2026-01-01T12:00:00.000Z');
   });
 
@@ -145,14 +145,14 @@ describe('GET /clients/:id/sessions', () => {
       created_at: new Date('2026-01-01T10:00:00.000Z'),
       revoked_at: null,
       revoke_reason: null,
-      client_slug: 'shop-web',
-      client_name: 'Shop Web',
+      client_slug: 'dobrunia-auth-web',
+      client_name: 'Dobrunia Auth Web',
     };
     const mockConnection = {
       release: vi.fn(),
       query: vi
         .fn()
-        .mockResolvedValueOnce([[{ id: '11111111-1111-4111-8111-111111111111', slug: 'shop-web', name: 'Shop Web' }]])
+        .mockResolvedValueOnce([[{ id: '11111111-1111-4111-8111-111111111111', slug: 'dobrunia-auth-web', name: 'Dobrunia Auth Web' }]])
         .mockResolvedValueOnce([[row]]),
     };
     vi.mocked(getDatabasePool).mockResolvedValue({
@@ -160,7 +160,7 @@ describe('GET /clients/:id/sessions', () => {
     } as never);
 
     const res = await request(buildApp())
-      .get('/clients/shop-web/sessions')
+      .get('/clients/dobrunia-auth-web/sessions')
       .set('Authorization', `Bearer ${token()}`);
 
     expect(res.status).toBe(200);

@@ -8,6 +8,7 @@ import { oauthRouter } from './modules/oauth/oauth.routes';
 import { sessionsRouter } from './modules/sessions/sessions.routes';
 import { clientsRouter } from './modules/clients/clients.routes';
 import { errorMiddleware } from './middleware/error.middleware';
+import { corsMiddleware } from './middleware/cors.middleware';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -16,6 +17,7 @@ async function bootstrap(): Promise<void> {
     app.set('trust proxy', 1);
 
     // Middleware
+    app.use(corsMiddleware);
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 

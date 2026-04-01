@@ -1,5 +1,4 @@
-import mysql from 'mysql2/promise';
-import { getDatabasePool } from './database';
+import { createMigrationRunnerConnection, getDatabasePool } from './database';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -42,37 +41,35 @@ export async function runMigrations(): Promise<void> {
     .filter((f) => f.endsWith('.sql'))
     .sort();
 
-  // Run pending migrations
-  for (const file of files) {
-    if (executedMigrations.has(file)) {
-      continue;
+  const migrationConn = await createMigrationRunnerConnection();
+  try {
+    // Run pending migrations (multipleStatements so one .sql file can contain ALTER; CREATE; etc.)
+    for (const file of files) {
+      if (executedMigrations.has(file)) {
+        continue;
+      }
+
+      const migrationPath = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(migrationPath, 'utf-8');
+
+      console.log(`Running migration: ${file}`);
+
+      try {
+        await migrationConn.beginTransaction();
+        await migrationConn.query(sql);
+        await migrationConn.query('INSERT INTO _migrations (name) VALUES (?)', [file]);
+        await migrationConn.commit();
+        executedMigrations.add(file);
+        console.log(`Migration completed: ${file}`);
+      } catch (error) {
+        await migrationConn.rollback();
+        console.error(`Migration failed: ${file}`, error);
+        throw error;
+      }
     }
-
-    const migrationPath = path.join(migrationsDir, file);
-    const sql = fs.readFileSync(migrationPath, 'utf-8');
-
-    console.log(`Running migration: ${file}`);
-
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-      await connection.query(sql);
-      await connection.query('INSERT INTO _migrations (name) VALUES (?)', [file]);
-      await connection.commit();
-      console.log(`Migration completed: ${file}`);
-    } catch (error) {
-      await connection.rollback();
-      console.error(`Migration failed: ${file}`, error);
-      throw error;
-    } finally {
-      connection.release();
-    }
+  } finally {
+    await migrationConn.end();
   }
   
   console.log('All migrations completed');
 }
-
-runMigrations().catch((err) => {
-  console.error('Migration error:', err);
-  process.exit(1);
-});

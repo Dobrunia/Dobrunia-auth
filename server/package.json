@@ -9,8 +9,8 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "tsx src/db/migrate.ts",
-    "db:migrate:rollback": "tsx src/db/migrate.ts --rollback"
+    "db:migrate": "tsx src/db/migrate-cli.ts",
+    "db:migrate:rollback": "tsx src/db/migrate-cli.ts --rollback"
   },
   "dependencies": {
     "argon2": "^0.44.0",

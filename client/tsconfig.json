@@ -17,7 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["./src/shared/*"],
+      "@view/*": ["./src/view/*"],
       "@features/*": ["./src/features/*"],
       "@types/*": ["./src/types/*"],
       "@constants/*": ["./src/constants/*"],

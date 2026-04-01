@@ -13,8 +13,8 @@ import { hashPassword } from '../../../../utils/password';
 
 const DEV_CLIENT_ROW = {
   id: '11111111-1111-4111-8111-111111111111',
-  slug: 'shop-web',
-  name: 'Shop Web',
+  slug: 'dobrunia-auth-web',
+  name: 'Dobrunia Auth Web',
 };
 
 function buildApp() {
@@ -67,7 +67,7 @@ describe('POST /auth/login', () => {
       .send({
         email: 'user@example.com',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(200);
@@ -76,7 +76,7 @@ describe('POST /auth/login', () => {
       email: 'user@example.com',
     });
     expect(res.body.session.clientId).toBe(DEV_CLIENT_ROW.id);
-    expect(res.body.session.clientSlug).toBe('shop-web');
+    expect(res.body.session.clientSlug).toBe('dobrunia-auth-web');
     expect(typeof res.body.accessToken).toBe('string');
     expect(typeof res.body.refreshToken).toBe('string');
     expect(mockConnection.execute).toHaveBeenCalledTimes(3);
@@ -113,7 +113,7 @@ describe('POST /auth/login', () => {
       .send({
         email: 'user@example.com',
         password: 'wrong-password-xxx',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(401);
@@ -140,7 +140,7 @@ describe('POST /auth/login', () => {
       .send({
         email: 'ghost@example.com',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(401);
@@ -178,7 +178,7 @@ describe('POST /auth/login', () => {
       .send({
         email: 'user@example.com',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(401);
@@ -216,7 +216,7 @@ describe('POST /auth/login', () => {
       .send({
         email: 'oauth@example.com',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(401);
@@ -253,7 +253,7 @@ describe('POST /auth/login', () => {
   it('возвращает 400 при невалидном теле и не обращается к БД', async () => {
     const res = await request(buildApp())
       .post('/auth/login')
-      .send({ email: 'bad', password: '12345678', clientId: 'shop-web' });
+      .send({ email: 'bad', password: '12345678', clientId: 'dobrunia-auth-web' });
 
     expect(res.status).toBe(400);
     expect(vi.mocked(getDatabasePool)).not.toHaveBeenCalled();

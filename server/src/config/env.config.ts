@@ -37,4 +37,18 @@ export const config = {
     port: parseInt(env.PORT, 10),
     host: env.HOST,
   },
+  cors: {
+    origins: parseCorsOrigins(env.CORS_ORIGINS),
+  },
 } as const;
+
+function parseCorsOrigins(raw: string): string[] {
+  const t = raw.trim();
+  if (t === '') {
+    return [];
+  }
+  return t
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}

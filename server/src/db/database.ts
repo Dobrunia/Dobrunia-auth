@@ -33,3 +33,11 @@ export async function closeDatabasePool(): Promise<void> {
     pool = null;
   }
 }
+
+/** Dedicated connection for migrations: allows multiple statements per file (semicolon-separated). */
+export async function createMigrationRunnerConnection(): Promise<mysql.Connection> {
+  return mysql.createConnection({
+    uri: config.database.url,
+    multipleStatements: true,
+  });
+}

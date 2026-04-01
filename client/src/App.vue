@@ -1,18 +1,19 @@
 <template>
-  <div id="app">
+  <div id="app" class="dbru-root dbru-bg dbru-text-base dbru-text-main app-shell">
     <router-view />
   </div>
 </template>
 
-<script setup lang="ts">
-// Main app component
-</script>
+<script setup lang="ts"></script>
 
 <style>
 @import 'dobruniaui-vue/styles.css';
 
 body {
   margin: 0;
-  font-family: var(--dbru-font-family, system-ui, -apple-system, sans-serif);
+}
+
+.app-shell {
+  min-height: 100vh;
 }
 </style>

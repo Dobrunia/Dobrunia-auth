@@ -27,8 +27,8 @@ const ME_ROW = {
   avatar_url: 'https://cdn.example.com/a.png',
   session_id: 'sess-bbbb-bbbb-4bbb-bbbbbbbbbbbb',
   client_id: '11111111-1111-4111-8111-111111111111',
-  client_slug: 'shop-web',
-  client_name: 'Shop Web',
+  client_slug: 'dobrunia-auth-web',
+  client_name: 'Dobrunia Auth Web',
 };
 
 describe('GET /auth/me', () => {

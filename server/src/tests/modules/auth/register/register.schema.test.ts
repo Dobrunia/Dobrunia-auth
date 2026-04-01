@@ -13,8 +13,8 @@ import { registerBodySchema } from '../../../../utils/schemas/register.schema';
 
 const DEV_CLIENT_ROW = {
   id: '11111111-1111-4111-8111-111111111111',
-  slug: 'shop-web',
-  name: 'Shop Web',
+  slug: 'dobrunia-auth-web',
+  name: 'Dobrunia Auth Web',
 };
 
 function buildApp() {
@@ -67,11 +67,11 @@ describe('registerBodySchema', () => {
     const out = registerBodySchema.parse({
       email: '  Test@Example.COM ',
       password: '12345678',
-      clientId: 'shop-web',
+      clientId: 'dobrunia-auth-web',
     });
     expect(out.email).toBe('test@example.com');
     expect(out.password).toBe('12345678');
-    expect(out.clientId).toBe('shop-web');
+    expect(out.clientId).toBe('dobrunia-auth-web');
   });
 
   /** Проверяет, что вместо clientId можно передать только clientSlug. */
@@ -79,9 +79,9 @@ describe('registerBodySchema', () => {
     const out = registerBodySchema.parse({
       email: 'a@b.co',
       password: '12345678',
-      clientSlug: 'shop-web',
+      clientSlug: 'dobrunia-auth-web',
     });
-    expect(out.clientSlug).toBe('shop-web');
+    expect(out.clientSlug).toBe('dobrunia-auth-web');
   });
 
   /** Проверяет, что без clientId и без clientSlug схема отклоняет запрос. */
@@ -111,7 +111,7 @@ describe('registerBodySchema', () => {
       registerBodySchema.parse({
         email: 'not-an-email',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       })
     ).toThrow();
   });
@@ -142,7 +142,7 @@ describe('POST /auth/register', () => {
       .send({
         email: 'newuser@example.com',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(201);
@@ -154,7 +154,7 @@ describe('POST /auth/register', () => {
     );
     expect(res.body.session).toMatchObject({
       clientId: DEV_CLIENT_ROW.id,
-      clientSlug: 'shop-web',
+      clientSlug: 'dobrunia-auth-web',
     });
     expect(res.body.session.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -169,11 +169,11 @@ describe('POST /auth/register', () => {
   it.each([
     {
       label: 'невалидный email',
-      body: { email: 'not-email', password: '12345678', clientId: 'shop-web' },
+      body: { email: 'not-email', password: '12345678', clientId: 'dobrunia-auth-web' },
     },
     {
       label: 'пароль короче 8 символов',
-      body: { email: 'ok@example.com', password: 'short', clientId: 'shop-web' },
+      body: { email: 'ok@example.com', password: 'short', clientId: 'dobrunia-auth-web' },
     },
     {
       label: 'нет ни clientId, ни clientSlug',
@@ -204,7 +204,7 @@ describe('POST /auth/register', () => {
       .send({
         email: 'taken@example.com',
         password: '12345678',
-        clientId: 'shop-web',
+        clientId: 'dobrunia-auth-web',
       });
 
     expect(res.status).toBe(409);

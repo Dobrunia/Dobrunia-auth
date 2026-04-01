@@ -13,8 +13,8 @@ import { hashPassword } from '../../../utils/password';
 
 const DEV_CLIENT_ROW = {
   id: '11111111-1111-4111-8111-111111111111',
-  slug: 'shop-web',
-  name: 'Shop Web',
+  slug: 'dobrunia-auth-web',
+  name: 'Dobrunia Auth Web',
 };
 
 /** Паттерны, которых не должно быть в JSON ответа клиенту */
@@ -102,7 +102,7 @@ describe('Безопасность и контракт тел ответов /au
         .send({
           email: 'safe-user@example.com',
           password: secretPassword,
-          clientId: 'shop-web',
+          clientId: 'dobrunia-auth-web',
         });
 
       expect(res.status).toBe(201);
@@ -134,7 +134,7 @@ describe('Безопасность и контракт тел ответов /au
         .send({
           email: 'taken@example.com',
           password: leakPassword,
-          clientId: 'shop-web',
+          clientId: 'dobrunia-auth-web',
         });
 
       expect(res.status).toBe(409);
@@ -152,7 +152,7 @@ describe('Безопасность и контракт тел ответов /au
         .send({
           email: 'not-an-email',
           password: secretPassword,
-          clientId: 'shop-web',
+          clientId: 'dobrunia-auth-web',
         });
 
       expect(res.status).toBe(400);
@@ -196,7 +196,7 @@ describe('Безопасность и контракт тел ответов /au
         .send({
           email: 'login-safe@example.com',
           password: secretPassword,
-          clientId: 'shop-web',
+          clientId: 'dobrunia-auth-web',
         });
 
       expect(res.status).toBe(200);
@@ -238,7 +238,7 @@ describe('Безопасность и контракт тел ответов /au
         .send({
           email: 'u@example.com',
           password: triedPassword,
-          clientId: 'shop-web',
+          clientId: 'dobrunia-auth-web',
         });
 
       expect(res.status).toBe(401);
@@ -268,7 +268,7 @@ describe('Безопасность и контракт тел ответов /au
         .send({
           email: 'nobody@example.com',
           password: triedPassword,
-          clientId: 'shop-web',
+          clientId: 'dobrunia-auth-web',
         });
 
       expect(res.status).toBe(401);
@@ -398,8 +398,8 @@ describe('Безопасность и контракт тел ответов /au
               avatar_url: null,
               session_id: 'sess-me-safe-bbbb-4bbb-bbbbbbbbbbbb',
               client_id: '11111111-1111-4111-8111-111111111111',
-              client_slug: 'shop-web',
-              client_name: 'Shop Web',
+              client_slug: 'dobrunia-auth-web',
+              client_name: 'Dobrunia Auth Web',
             },
           ],
         ]),
