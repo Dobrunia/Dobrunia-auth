@@ -1,5 +1,12 @@
 export type ClientId = string;
 
+/** Строка из SELECT по таблице `clients` (узкий набор полей). */
+export interface ClientRow {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 export interface Client {
   id: ClientId;
   name: string;

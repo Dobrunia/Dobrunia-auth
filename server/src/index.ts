@@ -3,12 +3,14 @@ import { config } from './config';
 import { getDatabasePool, closeDatabasePool } from './db/database';
 import { runMigrations } from './db/migrate';
 import { healthRouter } from './modules/health/health.routes';
+import { authRouter } from './modules/auth/auth.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 
 async function bootstrap(): Promise<void> {
   try {
     // Create Express app
     const app = express();
+    app.set('trust proxy', 1);
 
     // Middleware
     app.use(express.json());
@@ -16,6 +18,7 @@ async function bootstrap(): Promise<void> {
 
     // Routes
     app.use('/health', healthRouter);
+    app.use('/auth', authRouter);
 
     // Connect to database
     await getDatabasePool();
