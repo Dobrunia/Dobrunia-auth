@@ -22,13 +22,6 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().default('dev-access-secret-min-32-characters-long'),
   JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-min-32-characters-long'),
 
-  // Application URLs
-  APP_URL: z.string().default('http://localhost:3000'),
-  AUTH_ISSUER: z.string().default('http://localhost:3000'),
-  FRONTEND_URL: z.string().default('http://localhost:5173'),
-  /** Comma-separated list; defaults to FRONTEND_URL when empty (e.g. extra Vite ports) */
-  CORS_ORIGINS: z.string().optional(),
-
   // Server
   PORT: z.string().default('3000'),
   HOST: z.string().default('localhost'),
@@ -50,10 +43,6 @@ function loadEnv(): Env {
 
 const env = loadEnv();
 
-const corsOrigins = env.CORS_ORIGINS
-  ? env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
-  : [env.FRONTEND_URL];
-
 export const config = {
   database: {
     url: env.DATABASE_URL,
@@ -68,9 +57,6 @@ export const config = {
     refreshSecret: env.JWT_REFRESH_SECRET,
   },
   app: {
-    url: env.APP_URL,
-    issuer: env.AUTH_ISSUER,
-    frontendUrl: env.FRONTEND_URL,
     port: parseInt(env.PORT, 10),
     host: env.HOST,
   },
