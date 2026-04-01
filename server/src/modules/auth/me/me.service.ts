@@ -25,6 +25,7 @@ export const meService = {
         user: {
           id: row.user_id,
           email: row.email,
+          username: row.username,
           firstName: row.first_name,
           lastName: row.last_name,
           avatarUrl: row.avatar_url,

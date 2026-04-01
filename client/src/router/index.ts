@@ -11,6 +11,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     { path: ROUTES.SESSIONS, redirect: ROUTES.HOME },
+    {
+      path: ROUTES.PROFILE,
+      component: () => import('@/view/ProfilePage.vue'),
+      meta: { requiresAuth: true },
+    },
     { path: ROUTES.ACCOUNT, component: () => import('@/view/AccountSelectPage.vue') },
     { path: ROUTES.LOGIN, component: () => import('@/view/LoginPage.vue') },
     { path: ROUTES.REGISTER, component: () => import('@/view/RegisterPage.vue') },

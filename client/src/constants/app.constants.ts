@@ -16,6 +16,8 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   /** Только для OAuth: выбор client / аккаунта из уже известных входов */
   ACCOUNT: '/account',
+  /** Профиль: имя, ник, аватар, удаление аккаунта */
+  PROFILE: '/profile',
   /** Старый путь; редирект на HOME */
   SESSIONS: '/sessions',
   OAUTH_CALLBACK: '/oauth/callback',

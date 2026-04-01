@@ -393,6 +393,7 @@ describe('Безопасность и контракт тел ответов /au
             {
               user_id: 'user-me-safe-aaaa-4aaa-aaaaaaaaaaaa',
               email: 'me-safe@example.com',
+              username: null,
               first_name: 'Safe',
               last_name: 'User',
               avatar_url: null,
@@ -413,7 +414,7 @@ describe('Безопасность и контракт тел ответов /au
       expect(res.status).toBe(200);
       expect(Object.keys(res.body).sort()).toEqual(['session', 'user'].sort());
       expect(Object.keys(res.body.user as object).sort()).toEqual(
-        ['avatarUrl', 'email', 'firstName', 'id', 'lastName'].sort()
+        ['avatarUrl', 'email', 'firstName', 'id', 'lastName', 'username'].sort()
       );
       expect(Object.keys(res.body.session as object).sort()).toEqual(
         ['clientId', 'clientName', 'clientSlug', 'id'].sort()

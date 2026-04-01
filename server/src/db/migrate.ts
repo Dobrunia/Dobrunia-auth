@@ -3,8 +3,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 /**
- * Simple migration runner for MySQL
- * Migrations are SQL files stored in src/db/migrations
+ * MySQL migrations: каждый `*.sql` из `src/db/migrations` выполняется ровно один раз
+ * (имя файла пишется в `_migrations`). Перезапуск сервера не переигрывает уже применённые файлы
+ * и не трогает данные. Новые файлы добавляйте с большим префиксом сортировки (003_…).
  */
 
 export async function runMigrations(): Promise<void> {

@@ -3,6 +3,11 @@
     <div class="sessions-head">
       <h1 class="dbru-text-lg">Мои сессии</h1>
       <div class="sessions-head__actions">
+        <RouterLink v-slot="{ navigate }" :to="ROUTES.PROFILE" custom>
+          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+            Мой аккаунт
+          </DbrButton>
+        </RouterLink>
         <DbrButton variant="ghost" native-type="button" :disabled="logoutLoading" @click="onLogoutEverywhere">
           Выйти (refresh)
         </DbrButton>
@@ -16,46 +21,18 @@
       <DbrLoader size="md" />
       <span class="dbru-text-sm dbru-text-muted">Загрузка…</span>
     </div>
-    <ul v-else class="sessions-list">
-      <li v-for="s in sessions" :key="s.id">
-        <DbrCard
-          variant="bordered"
-          as="article"
-          class="dbru-surface session-card"
-          :class="{ 'session-card--inactive': s.status !== 'active' }"
-        >
-          <div class="session-card__row">
-            <DbrChip :variant="chipVariant(s.status)">{{ s.status }}</DbrChip>
-            <span class="dbru-text-main" style="font-weight: var(--dbru-font-weight-semibold)">
-              {{ s.clientName }} ({{ s.clientSlug }})
-            </span>
-          </div>
-          <p class="dbru-text-xs dbru-text-muted session-meta">ID сессии: {{ s.id }}</p>
-          <p v-if="s.ipAddress" class="dbru-text-xs dbru-text-muted session-meta">IP: {{ s.ipAddress }}</p>
-          <p
-            v-if="s.userAgent"
-            class="dbru-text-xs dbru-text-muted session-meta"
-            :title="s.userAgent"
-          >
-            UA: {{ truncate(s.userAgent, 80) }}
-          </p>
-          <p class="dbru-text-xs dbru-text-muted session-meta">Создана: {{ formatDate(s.createdAt) }}</p>
-          <p v-if="s.lastSeenAt" class="dbru-text-xs dbru-text-muted session-meta">
-            Последняя активность: {{ formatDate(s.lastSeenAt) }}
-          </p>
-          <DbrButton
-            variant="danger"
-            native-type="button"
-            size="sm"
-            class="session-revoke"
-            :disabled="deletingId === s.id || s.status !== 'active'"
-            @click="onRevoke(s.id)"
-          >
-            Завершить
-          </DbrButton>
-        </DbrCard>
-      </li>
-    </ul>
+    <div v-else class="sessions-groups">
+      <SessionClientGroup
+        v-for="g in sessionGroups"
+        :key="g.clientId"
+        :client-name="g.clientName"
+        :client-slug="g.clientSlug"
+        :sessions="g.sessions"
+        :current-session-id="currentSessionId"
+        :deleting-id="deletingId"
+        @revoke="onRevoke"
+      />
+    </div>
     <p
       v-if="!loading && !loadError && sessions.length === 0"
       class="dbru-text-sm dbru-text-muted"
@@ -67,11 +44,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { DbrButton, DbrCard, DbrChip, DbrLoader } from 'dobruniaui-vue';
-import { deleteSession, listSessions, logout } from '@/api/auth-api';
+import { DbrButton, DbrLoader } from 'dobruniaui-vue';
+import { deleteSession, fetchMe, listSessions, logout } from '@/api/auth-api';
 import { ApiError } from '@/api/http';
+import SessionClientGroup from '@/components/SessionClientGroup.vue';
 import { ROUTES } from '@/constants/app.constants';
 import { tokenStorage } from '@/lib/token-storage';
 import type { SessionItem } from '@/types';
@@ -82,33 +60,51 @@ const loading = ref(true);
 const loadError = ref('');
 const deletingId = ref<string | null>(null);
 const logoutLoading = ref(false);
+const currentSessionId = ref<string | null>(null);
 
-function chipVariant(status: string): 'primary' | 'ghost' | 'danger' {
-  if (status === 'active') return 'primary';
-  if (status === 'revoked') return 'danger';
-  return 'ghost';
-}
-
-function formatDate(iso: string) {
+function sessionSortKey(s: SessionItem) {
+  const t = s.lastSeenAt ?? s.createdAt;
   try {
-    return new Date(iso).toLocaleString();
+    return new Date(t).getTime();
   } catch {
-    return iso;
+    return 0;
   }
 }
 
-function truncate(s: string, n: number) {
-  return s.length <= n ? s : `${s.slice(0, n)}…`;
-}
+const sessionGroups = computed(() => {
+  const map = new Map<string, SessionItem[]>();
+  for (const s of sessions.value) {
+    const list = map.get(s.clientId);
+    if (list) {
+      list.push(s);
+    } else {
+      map.set(s.clientId, [s]);
+    }
+  }
+  const groups = Array.from(map.entries()).map(([clientId, items]) => {
+    const sorted = [...items].sort((a, b) => sessionSortKey(b) - sessionSortKey(a));
+    const first = sorted[0];
+    return {
+      clientId,
+      clientName: first.clientName,
+      clientSlug: first.clientSlug,
+      sessions: sorted,
+    };
+  });
+  groups.sort((a, b) => a.clientName.localeCompare(b.clientName, 'ru'));
+  return groups;
+});
 
 async function load() {
   loadError.value = '';
   loading.value = true;
   try {
-    const res = await listSessions();
+    const [me, res] = await Promise.all([fetchMe(), listSessions()]);
+    currentSessionId.value = me.session.id;
     sessions.value = res.sessions;
   } catch (e) {
     loadError.value = e instanceof ApiError ? e.message : 'Ошибка загрузки';
+    currentSessionId.value = null;
   } finally {
     loading.value = false;
   }
@@ -156,7 +152,7 @@ onMounted(() => {
   padding: var(--dbru-space-5) var(--dbru-space-4);
 }
 .auth-page--wide {
-  max-width: 48rem;
+  max-width: 52rem;
 }
 .sessions-head {
   display: flex;
@@ -176,27 +172,10 @@ onMounted(() => {
   gap: var(--dbru-space-3);
   margin-top: var(--dbru-space-4);
 }
-.sessions-list {
-  list-style: none;
-  padding: 0;
-  margin: var(--dbru-space-4) 0 0;
+.sessions-groups {
+  margin-top: var(--dbru-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--dbru-space-3);
-}
-.session-card--inactive {
-  opacity: 0.88;
-}
-.session-card__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--dbru-space-2) var(--dbru-space-3);
-}
-.session-meta {
-  margin: var(--dbru-space-2) 0 0;
-}
-.session-revoke {
-  margin-top: var(--dbru-space-3);
+  gap: var(--dbru-space-4);
 }
 </style>

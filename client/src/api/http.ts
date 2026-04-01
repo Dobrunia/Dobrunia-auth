@@ -1,4 +1,5 @@
 import { clientConfig } from '@/config';
+import { ROUTES } from '@/constants/app.constants';
 import { tokenStorage } from '@/lib/token-storage';
 
 export class ApiError extends Error {
@@ -55,6 +56,16 @@ export async function apiJson<T>(
       typeof (body as { error?: { message?: string } }).error?.message === 'string'
         ? (body as { error: { message: string } }).error.message
         : res.statusText || 'Request failed';
+
+    if (res.status === 401 && auth) {
+      tokenStorage.clear();
+      const loc = globalThis.location;
+      const here = `${loc.pathname}${loc.search}`;
+      const skipReturn = here === ROUTES.LOGIN || here.startsWith(`${ROUTES.LOGIN}?`);
+      const suffix = skipReturn ? '' : `?returnTo=${encodeURIComponent(here)}`;
+      loc.assign(`${ROUTES.LOGIN}${suffix}`);
+    }
+
     throw new ApiError(msg, res.status);
   }
 

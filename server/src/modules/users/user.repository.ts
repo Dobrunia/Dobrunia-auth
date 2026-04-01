@@ -67,3 +67,42 @@ export async function insertUser(
     [params.id, params.email, params.passwordHash]
   );
 }
+
+export async function findUserIdByUsernameExcluding(
+  connection: PoolConnection,
+  username: string,
+  excludeUserId: string
+): Promise<string | null> {
+  const [rows] = await connection.query(
+    'SELECT id FROM users WHERE username = ? AND id != ? LIMIT 1',
+    [username, excludeUserId]
+  );
+  const list = rows as { id: string }[];
+  return list[0]?.id ?? null;
+}
+
+export async function updateUserProfile(
+  connection: PoolConnection,
+  userId: string,
+  params: {
+    username: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    avatarUrl: string | null;
+  }
+): Promise<void> {
+  await connection.execute(
+    `UPDATE users SET
+      username = ?,
+      first_name = ?,
+      last_name = ?,
+      avatar_url = ?,
+      updated_at = CURRENT_TIMESTAMP(3)
+     WHERE id = ?`,
+    [params.username, params.firstName, params.lastName, params.avatarUrl, userId]
+  );
+}
+
+export async function deleteUserById(connection: PoolConnection, userId: string): Promise<void> {
+  await connection.execute('DELETE FROM users WHERE id = ?', [userId]);
+}

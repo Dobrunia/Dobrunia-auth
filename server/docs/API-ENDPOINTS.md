@@ -37,7 +37,7 @@
   - вставка пользователя;
   - создание сессии со статусом `active`, привязка к `user_id` и `client_id`;
   - генерация **opaque** refresh-токена, в БД пишется только **SHA-256** от него;
-  - выпуск **access** JWT (HS256, срок из `ACCESS_TOKEN_EXPIRES_SEC`).
+  - выпуск **access** JWT (HS256, срок из `ACCESS_TOKEN_EXPIRES_SEC`; дефолт см. `server/src/constants/jwt.constants.ts`).
 - **Успех:** `201`, тело: `user` (`id`, `email`), `session` (`id`, `clientId`, `clientSlug`), `accessToken`, `refreshToken` (сырой refresh только здесь; в БД — хеш).
 - **Ошибки:** `400` (невалидное тело по Zod; клиент не найден или неактивен — сообщение `Unknown or inactive client`), `409` (email уже зарегистрирован или дубликат на уровне БД).
 
@@ -104,9 +104,34 @@
 - **Заголовок:** `Authorization: Bearer <accessToken>` (обязателен валидный неистёкший JWT из этого сервиса).
 - **Логика:** проверка подписи и срока access, извлечение `sub` (user id) и `sid` (session id); один запрос в БД: активная сессия с этим id и пользователем, join `users` и `clients`.
 - **Успех:** `200`, тело:
-  - `user`: `id`, `email`, `firstName`, `lastName`, `avatarUrl` (безопасный профиль);
+  - `user`: `id`, `email`, `username`, `firstName`, `lastName`, `avatarUrl` (безопасный профиль);
   - `session`: `id`, `clientId`, `clientSlug`, `clientName`.
 - **Ошибки:** нет заголовка / не `Bearer` — **`401`** `Authorization Bearer token required`. Невалидный или истёкший JWT, либо сессия не найдена/не `active` — **`401`** `Invalid or expired access token`.
+
+---
+
+## `PATCH /auth/me`
+
+### Flow
+
+- **Зачем:** обновить отображаемые поля профиля в таблице `users` (имя, ник, URL аватара). Email и пароль этим методом не меняются.
+- **Заголовок:** `Authorization: Bearer <accessToken>` (сессия из JWT должна быть `active`).
+- **Тело (JSON):** обязательно все поля (можно пустые строки — трактуются как «очистить» в БД): `username`, `firstName`, `lastName`, `avatarUrl`. Лимиты длин совпадают с колонками БД; `avatarUrl` непустой должен быть `http://` или `https://`.
+- **Логика:** транзакция: проверка активной сессии; при непустом `username` — уникальность среди других пользователей; `UPDATE users`; ответ как у **`GET /auth/me`** (актуальные данные).
+- **Успех:** `200`, тело в формате `GET /auth/me`.
+- **Ошибки:** **`400`** (Zod / невалидный URL аватара), **`401`** (нет Bearer / невалидный JWT / сессия не активна), **`409`** `Username already taken`.
+
+---
+
+## `DELETE /auth/me`
+
+### Flow
+
+- **Зачем:** полное удаление учётной записи пользователя. Каскадно удаляются связанные строки (сессии, refresh-токены, OAuth authorization codes и т.д. — по внешним ключам `ON DELETE CASCADE` в БД).
+- **Заголовок:** `Authorization: Bearer <accessToken>`.
+- **Логика:** проверка активной сессии; `DELETE FROM users WHERE id = sub`.
+- **Успех:** **`204`**, пустое тело. Клиент должен удалить локальные токены: access/refresh после этого недействительны.
+- **Ошибки:** **`401`** (как у `GET /auth/me`).
 
 ---
 

@@ -22,6 +22,7 @@ function buildApp() {
 const ME_ROW = {
   user_id: 'user-aaaa-aaaa-4aaa-aaaaaaaaaaaa',
   email: 'me@example.com',
+  username: 'ann_doe',
   first_name: 'Ann',
   last_name: 'Doe',
   avatar_url: 'https://cdn.example.com/a.png',
@@ -58,6 +59,7 @@ describe('GET /auth/me', () => {
       user: {
         id: ME_ROW.user_id,
         email: ME_ROW.email,
+        username: ME_ROW.username,
         firstName: ME_ROW.first_name,
         lastName: ME_ROW.last_name,
         avatarUrl: ME_ROW.avatar_url,

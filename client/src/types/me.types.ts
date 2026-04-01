@@ -1,4 +1,4 @@
-export interface MeUserDto {
+export interface MeUser {
   id: string;
   email: string;
   username: string | null;
@@ -7,7 +7,7 @@ export interface MeUserDto {
   avatarUrl: string | null;
 }
 
-export interface MeSessionDto {
+export interface MeSession {
   id: string;
   clientId: string;
   clientSlug: string;
@@ -15,6 +15,13 @@ export interface MeSessionDto {
 }
 
 export interface MeResponse {
-  user: MeUserDto;
-  session: MeSessionDto;
+  user: MeUser;
+  session: MeSession;
+}
+
+export interface ProfilePatchBody {
+  username: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
 }

@@ -1,4 +1,4 @@
-import type { AuthTokensResponse, SessionItem } from '@/types';
+import type { AuthTokensResponse, MeResponse, ProfilePatchBody, SessionItem } from '@/types';
 import { apiJson } from './http';
 
 export async function login(body: {
@@ -51,6 +51,28 @@ export async function listSessions(): Promise<{ sessions: SessionItem[] }> {
 
 export async function deleteSession(sessionId: string): Promise<void> {
   await apiJson(`/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+    auth: true,
+  });
+}
+
+export async function fetchMe(): Promise<MeResponse> {
+  return apiJson<MeResponse>('/auth/me', {
+    method: 'GET',
+    auth: true,
+  });
+}
+
+export async function patchProfile(body: ProfilePatchBody): Promise<MeResponse> {
+  return apiJson<MeResponse>('/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    auth: true,
+  });
+}
+
+export async function deleteAccount(): Promise<void> {
+  await apiJson('/auth/me', {
     method: 'DELETE',
     auth: true,
   });

@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { JWT_DEFAULT_ACCESS_EXPIRES_SEC, JWT_DEFAULT_REFRESH_EXPIRES_DAYS } from '../constants/jwt.constants';
 import { envSchema } from './env.schema';
 import type { Env } from '../types/env.types';
 
@@ -35,8 +36,8 @@ export const config = {
   jwt: {
     accessSecret: env.JWT_ACCESS_SECRET,
     refreshSecret: env.JWT_REFRESH_SECRET,
-    accessExpiresSec: parsePositiveInt(env.ACCESS_TOKEN_EXPIRES_SEC, 900),
-    refreshExpiresDays: parsePositiveInt(env.REFRESH_TOKEN_EXPIRES_DAYS, 30),
+    accessExpiresSec: parsePositiveInt(env.ACCESS_TOKEN_EXPIRES_SEC, JWT_DEFAULT_ACCESS_EXPIRES_SEC),
+    refreshExpiresDays: parsePositiveInt(env.REFRESH_TOKEN_EXPIRES_DAYS, JWT_DEFAULT_REFRESH_EXPIRES_DAYS),
   },
   app: {
     port: parsePositiveInt(env.PORT, 3000),

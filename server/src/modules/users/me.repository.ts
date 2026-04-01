@@ -3,6 +3,7 @@ import type { PoolConnection } from 'mysql2/promise';
 export interface MeQueryRow {
   user_id: string;
   email: string;
+  username: string | null;
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
@@ -22,6 +23,7 @@ export async function findMeContext(
     `SELECT
        u.id AS user_id,
        u.email,
+       u.username,
        u.first_name,
        u.last_name,
        u.avatar_url,
