@@ -9,6 +9,15 @@ export interface ActiveRefreshTokenLookupRow {
   session_id: SessionId;
 }
 
+/** Данные активного refresh для ротации (POST /auth/refresh). */
+export interface ActiveRefreshTokenRotationRow {
+  id: RefreshTokenId;
+  session_id: SessionId;
+  user_id: UserId;
+  family_id: string | null;
+  email: string;
+}
+
 export interface RefreshToken {
   id: RefreshTokenId;
   session_id: SessionId;

@@ -313,4 +313,112 @@ describe('Безопасность и контракт тел ответов /au
       assertBodyHasNoSensitiveLeak(res.body);
     });
   });
+
+  describe('POST /auth/refresh', () => {
+    it('успех: только accessToken и refreshToken, без лишних полей', async () => {
+      const { hashRefreshToken } = await import('../../../modules/auth/token.utils');
+      const plainRefresh = 'SafetyRefreshOk_OnlyTokensInBody_9kM';
+      const tokenHash = hashRefreshToken(plainRefresh);
+      const mockConnection = {
+        beginTransaction: vi.fn().mockResolvedValue(undefined),
+        commit: vi.fn().mockResolvedValue(undefined),
+        rollback: vi.fn().mockResolvedValue(undefined),
+        release: vi.fn(),
+        query: vi
+          .fn()
+          .mockResolvedValueOnce([
+            [
+              {
+                id: 'rt-safety-1111-4111-8111-111111111111',
+                session_id: 'sess-safety-2222-4222-8222-222222222222',
+                user_id: 'user-safety-3333-4333-8333-333333333333',
+                family_id: null,
+                email: 'refresh-safe@example.com',
+              },
+            ],
+          ])
+          .mockResolvedValueOnce([[{ ok: 1 }]]),
+        execute: vi.fn().mockResolvedValue([{ affectedRows: 1 }, []]),
+      };
+      vi.mocked(getDatabasePool).mockResolvedValue({
+        getConnection: vi.fn().mockResolvedValue(mockConnection),
+      } as never);
+
+      const res = await request(buildApp())
+        .post('/auth/refresh')
+        .send({ refreshToken: plainRefresh });
+
+      expect(res.status).toBe(200);
+      expect(Object.keys(res.body).sort()).toEqual(['accessToken', 'refreshToken'].sort());
+      assertBodyHasNoSensitiveLeak(res.body);
+      expect(JSON.stringify(res.body)).not.toContain(tokenHash);
+    });
+
+    it('401: одно сообщение, без деталей причины', async () => {
+      const mockConnection = {
+        beginTransaction: vi.fn().mockResolvedValue(undefined),
+        commit: vi.fn().mockResolvedValue(undefined),
+        rollback: vi.fn().mockResolvedValue(undefined),
+        release: vi.fn(),
+        query: vi.fn().mockResolvedValueOnce([[]]),
+        execute: vi.fn(),
+      };
+      vi.mocked(getDatabasePool).mockResolvedValue({
+        getConnection: vi.fn().mockResolvedValue(mockConnection),
+      } as never);
+
+      const res = await request(buildApp())
+        .post('/auth/refresh')
+        .send({ refreshToken: 'bad-refresh-safety-test' });
+
+      expect(res.status).toBe(401);
+      assertHttpErrorShape(res.body);
+      expect(res.body.error.message).toBe('Invalid or expired refresh token');
+      assertBodyHasNoSensitiveLeak(res.body);
+    });
+  });
+
+  describe('GET /auth/me', () => {
+    it('успех: только user и session с ожидаемыми ключами, без пароля и хешей', async () => {
+      const { signAccessToken } = await import('../../../modules/auth/token.utils');
+      const token = signAccessToken({
+        sub: 'user-me-safe-aaaa-4aaa-aaaaaaaaaaaa',
+        sid: 'sess-me-safe-bbbb-4bbb-bbbbbbbbbbbb',
+        email: 'me-safe@example.com',
+      });
+      const mockConnection = {
+        release: vi.fn(),
+        query: vi.fn().mockResolvedValueOnce([
+          [
+            {
+              user_id: 'user-me-safe-aaaa-4aaa-aaaaaaaaaaaa',
+              email: 'me-safe@example.com',
+              first_name: 'Safe',
+              last_name: 'User',
+              avatar_url: null,
+              session_id: 'sess-me-safe-bbbb-4bbb-bbbbbbbbbbbb',
+              client_id: '11111111-1111-4111-8111-111111111111',
+              client_slug: 'shop-web',
+              client_name: 'Shop Web',
+            },
+          ],
+        ]),
+      };
+      vi.mocked(getDatabasePool).mockResolvedValue({
+        getConnection: vi.fn().mockResolvedValue(mockConnection),
+      } as never);
+
+      const res = await request(buildApp()).get('/auth/me').set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(Object.keys(res.body).sort()).toEqual(['session', 'user'].sort());
+      expect(Object.keys(res.body.user as object).sort()).toEqual(
+        ['avatarUrl', 'email', 'firstName', 'id', 'lastName'].sort()
+      );
+      expect(Object.keys(res.body.session as object).sort()).toEqual(
+        ['clientId', 'clientName', 'clientSlug', 'id'].sort()
+      );
+      assertBodyHasNoSensitiveLeak(res.body);
+    });
+  });
 });

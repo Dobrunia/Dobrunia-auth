@@ -1,5 +1,19 @@
 import type { PoolConnection } from 'mysql2/promise';
 
+export async function isSessionActiveForUser(
+  connection: PoolConnection,
+  sessionId: string,
+  userId: string,
+  activeStatus: string
+): Promise<boolean> {
+  const [rows] = await connection.query(
+    'SELECT 1 AS ok FROM sessions WHERE id = ? AND user_id = ? AND status = ? LIMIT 1',
+    [sessionId, userId, activeStatus]
+  );
+  const list = rows as { ok: number }[];
+  return list.length > 0;
+}
+
 export async function revokeSessionById(
   connection: PoolConnection,
   sessionId: string,

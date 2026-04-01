@@ -18,3 +18,12 @@ export function getUserAgent(req: Request): string | null {
   }
   return ua;
 }
+
+export function getBearerToken(req: Request): string | null {
+  const h = req.headers.authorization;
+  if (!h || typeof h !== 'string') {
+    return null;
+  }
+  const m = /^Bearer\s+(\S+)/i.exec(h.trim());
+  return m?.[1] ?? null;
+}

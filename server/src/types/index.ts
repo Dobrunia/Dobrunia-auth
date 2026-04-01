@@ -4,9 +4,12 @@ export type { Env } from './env.types';
 export type { HealthStatus } from './health.types';
 export type { LoginBody, LoginContext, LoginResult } from './login.types';
 export type { LogoutBody } from './logout.types';
+export type { MeResponse, MeSessionDto, MeUserDto } from './me.types';
+export type { RefreshAuthBody, RefreshAuthResult } from './refresh-auth.types';
 export type { RegisterBody, RegisterContext, RegisterResult } from './register.types';
 export type {
   ActiveRefreshTokenLookupRow,
+  ActiveRefreshTokenRotationRow,
   RefreshToken,
   RefreshTokenId,
 } from './refresh-token.types';

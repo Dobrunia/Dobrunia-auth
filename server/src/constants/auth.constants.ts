@@ -6,4 +6,5 @@ export const SESSION_STATUS = {
 
 export const REVOKE_REASON = {
   LOGOUT: 'logout',
+  ROTATED: 'rotated',
 } as const;
