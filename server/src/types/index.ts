@@ -3,8 +3,10 @@ export type { Client, ClientId, ClientRow } from './client.types';
 export type { Env } from './env.types';
 export type { HealthStatus } from './health.types';
 export type { LoginBody, LoginContext, LoginResult } from './login.types';
+export type { LogoutBody } from './logout.types';
 export type { RegisterBody, RegisterContext, RegisterResult } from './register.types';
 export type {
+  ActiveRefreshTokenLookupRow,
   RefreshToken,
   RefreshTokenId,
 } from './refresh-token.types';

@@ -1,4 +1,32 @@
 import type { PoolConnection } from 'mysql2/promise';
+import type { ActiveRefreshTokenLookupRow } from '../../types/refresh-token.types';
+
+export async function findActiveRefreshTokenByHash(
+  connection: PoolConnection,
+  tokenHash: string
+): Promise<ActiveRefreshTokenLookupRow | null> {
+  const [rows] = await connection.query(
+    `SELECT id, session_id FROM refresh_tokens
+     WHERE token_hash = ? AND revoked_at IS NULL AND expires_at > CURRENT_TIMESTAMP(3)
+     LIMIT 1`,
+    [tokenHash]
+  );
+  const list = rows as ActiveRefreshTokenLookupRow[];
+  return list[0] ?? null;
+}
+
+export async function revokeRefreshTokenById(
+  connection: PoolConnection,
+  id: string,
+  reason: string
+): Promise<void> {
+  await connection.execute(
+    `UPDATE refresh_tokens
+     SET revoked_at = CURRENT_TIMESTAMP(3), revoke_reason = ?
+     WHERE id = ? AND revoked_at IS NULL`,
+    [reason, id]
+  );
+}
 
 export async function insertRefreshToken(
   connection: PoolConnection,

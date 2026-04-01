@@ -3,6 +3,12 @@ import type { UserId } from './user.types';
 
 export type RefreshTokenId = string;
 
+/** Узкая строка для logout: активный refresh по hash. */
+export interface ActiveRefreshTokenLookupRow {
+  id: RefreshTokenId;
+  session_id: SessionId;
+}
+
 export interface RefreshToken {
   id: RefreshTokenId;
   session_id: SessionId;

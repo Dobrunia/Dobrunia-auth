@@ -1,5 +1,23 @@
 import type { PoolConnection } from 'mysql2/promise';
 
+export async function revokeSessionById(
+  connection: PoolConnection,
+  sessionId: string,
+  statusRevoked: string,
+  reason: string,
+  statusActive: string
+): Promise<void> {
+  await connection.execute(
+    `UPDATE sessions SET
+      status = ?,
+      revoked_at = CURRENT_TIMESTAMP(3),
+      revoke_reason = ?,
+      updated_at = CURRENT_TIMESTAMP(3)
+     WHERE id = ? AND status = ?`,
+    [statusRevoked, reason, sessionId, statusActive]
+  );
+}
+
 export async function insertSession(
   connection: PoolConnection,
   params: {

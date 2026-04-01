@@ -277,4 +277,40 @@ describe('Безопасность и контракт тел ответов /au
       expect(JSON.stringify(res.body)).not.toContain(triedPassword);
     });
   });
+
+  describe('POST /auth/logout', () => {
+    /** 204: пустое тело, refresh из запроса не попадает в ответ. */
+    it('не возвращает тело и не эхоит refreshToken при неизвестном токене', async () => {
+      const secretRefresh = 'LogoutUnknownRt_ShouldNotEcho_6hJ';
+      const mockConnection = {
+        beginTransaction: vi.fn().mockResolvedValue(undefined),
+        commit: vi.fn().mockResolvedValue(undefined),
+        rollback: vi.fn().mockResolvedValue(undefined),
+        release: vi.fn(),
+        query: vi.fn().mockResolvedValueOnce([[]]),
+        execute: vi.fn(),
+      };
+      vi.mocked(getDatabasePool).mockResolvedValue({
+        getConnection: vi.fn().mockResolvedValue(mockConnection),
+      } as never);
+
+      const res = await request(buildApp())
+        .post('/auth/logout')
+        .send({ refreshToken: secretRefresh });
+
+      expect(res.status).toBe(204);
+      expect(res.text).toBe('');
+      const out = res.body && Object.keys(res.body).length ? JSON.stringify(res.body) : '';
+      expect(out).not.toContain(secretRefresh);
+    });
+
+    /** 400: только error.message. */
+    it('не раскрывает лишние поля при невалидном теле logout', async () => {
+      const res = await request(buildApp()).post('/auth/logout').send({});
+
+      expect(res.status).toBe(400);
+      assertHttpErrorShape(res.body);
+      assertBodyHasNoSensitiveLeak(res.body);
+    });
+  });
 });
