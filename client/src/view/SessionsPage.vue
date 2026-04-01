@@ -6,9 +6,6 @@
         <DbrButton variant="ghost" native-type="button" :disabled="logoutLoading" @click="onLogoutEverywhere">
           Выйти (refresh)
         </DbrButton>
-        <RouterLink v-slot="{ navigate }" :to="ROUTES.HOME" custom>
-          <DbrButton variant="ghost" native-type="button" @click="navigate">Главная</DbrButton>
-        </RouterLink>
       </div>
     </div>
     <p class="dbru-text-muted dbru-text-base" style="line-height: var(--dbru-line-height-base)">

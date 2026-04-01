@@ -7,14 +7,16 @@ import { clientConfig } from '../config';
 export const APP_NAME = 'Dobrunia Auth';
 
 export const ROUTES = {
+  /** Дашборд: список сессий (требует входа) */
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
   VERIFY_EMAIL: '/verify-email',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
-  /** Выбор приложения (client) перед входом */
+  /** Только для OAuth: выбор client / аккаунта из уже известных входов */
   ACCOUNT: '/account',
+  /** Старый путь; редирект на HOME */
   SESSIONS: '/sessions',
   OAUTH_CALLBACK: '/oauth/callback',
 } as const;

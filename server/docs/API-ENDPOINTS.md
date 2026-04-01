@@ -6,7 +6,7 @@
 
 ### CORS (браузерный фронт на другом origin)
 
-- **`CORS_ORIGINS`**: разрешённые значения заголовка `Origin` через запятую, например `http://localhost:5173,https://auth.example.com`. По умолчанию: `http://localhost:5173` (локальный Vite).
+- **`CORS_ORIGINS`**: разрешённые значения заголовка `Origin` через запятую, например `http://localhost:5173,https://auth.example.com`. По умолчанию: `http://localhost:5173,http://localhost:5174` (основной auth-web и каталог `example/`).
 - Если в списке есть **`*`**, выставляется `Access-Control-Allow-Origin: *` (удобно только для отладки).
 - Preflight **`OPTIONS`** — ответ **`204`** и те же правила заголовков. Разрешены методы `GET`, `POST`, `DELETE` и заголовки `Authorization`, `Content-Type`.
 

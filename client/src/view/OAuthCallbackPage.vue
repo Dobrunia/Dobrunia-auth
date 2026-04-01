@@ -54,7 +54,7 @@ onMounted(async () => {
     });
     tokenStorage.setTokens(res.accessToken, res.refreshToken);
     status.value = 'ok';
-    await router.replace(ROUTES.SESSIONS);
+    await router.replace(ROUTES.HOME);
   } catch (e) {
     status.value = 'error';
     message.value = e instanceof ApiError ? e.message : 'Ошибка обмена кода';
