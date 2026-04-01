@@ -4,6 +4,14 @@
  */
 export type UserId = string;
 
+/** Узкая выборка из `users` для входа по паролю (после маппинга из БД). */
+export interface UserPasswordAuthRow {
+  id: UserId;
+  email: string;
+  password_hash: string | null;
+  is_active: boolean;
+}
+
 export interface User {
   id: UserId;
   email: string;
