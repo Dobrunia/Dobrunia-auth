@@ -2,6 +2,8 @@ import express from 'express';
 import { config } from './config';
 import { getDatabasePool, closeDatabasePool } from './db/database';
 import { runMigrations } from './db/migrate';
+import { healthRouter } from './modules/health/health.routes';
+import { errorMiddleware } from './middleware/error.middleware';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -13,7 +15,7 @@ async function bootstrap(): Promise<void> {
     app.use(express.urlencoded({ extended: true }));
 
     // Routes
-    
+    app.use('/health', healthRouter);
 
     // Connect to database
     await getDatabasePool();
@@ -22,6 +24,9 @@ async function bootstrap(): Promise<void> {
     // Run migrations
     await runMigrations();
     console.log('Migrations completed');
+
+    // Middleware
+    app.use(errorMiddleware);
 
     // Start server
     app.listen(config.app.port, () => {
