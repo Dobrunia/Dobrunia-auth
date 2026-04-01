@@ -1,0 +1,25 @@
+-- Refresh tokens: store only hashes (e.g. SHA-256 of opaque token), never the raw secret
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id CHAR(36) NOT NULL,
+  session_id CHAR(36) NOT NULL,
+  user_id CHAR(36) NOT NULL,
+  token_hash VARCHAR(255) NOT NULL,
+  family_id CHAR(36) NULL,
+  previous_token_id CHAR(36) NULL,
+  issued_at DATETIME(3) NOT NULL,
+  expires_at DATETIME(3) NOT NULL,
+  revoked_at DATETIME(3) NULL,
+  revoke_reason VARCHAR(512) NULL,
+  replaced_by_token_id CHAR(36) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3)),
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_refresh_tokens_token_hash (token_hash),
+  KEY idx_refresh_tokens_session_id (session_id),
+  KEY idx_refresh_tokens_user_id (user_id),
+  KEY idx_refresh_tokens_family_id (family_id),
+  KEY idx_refresh_tokens_expires_at (expires_at),
+  CONSTRAINT fk_refresh_tokens_session_id FOREIGN KEY (session_id) REFERENCES sessions (id) ON DELETE CASCADE,
+  CONSTRAINT fk_refresh_tokens_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_refresh_tokens_previous_token_id FOREIGN KEY (previous_token_id) REFERENCES refresh_tokens (id) ON DELETE SET NULL,
+  CONSTRAINT fk_refresh_tokens_replaced_by_token_id FOREIGN KEY (replaced_by_token_id) REFERENCES refresh_tokens (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

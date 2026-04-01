@@ -1,0 +1,27 @@
+-- Login sessions per user and client app
+CREATE TABLE IF NOT EXISTS sessions (
+  id CHAR(36) NOT NULL,
+  user_id CHAR(36) NOT NULL,
+  client_id CHAR(36) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  device_name VARCHAR(255) NULL,
+  device_type VARCHAR(32) NULL,
+  browser VARCHAR(128) NULL,
+  os VARCHAR(128) NULL,
+  ip_address VARCHAR(45) NULL,
+  user_agent TEXT NULL,
+  country VARCHAR(128) NULL,
+  city VARCHAR(128) NULL,
+  last_seen_at DATETIME(3) NULL,
+  expires_at DATETIME(3) NULL,
+  revoked_at DATETIME(3) NULL,
+  revoke_reason VARCHAR(512) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3)),
+  updated_at DATETIME(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3)) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_sessions_user_id (user_id),
+  KEY idx_sessions_client_id (client_id),
+  KEY idx_sessions_expires_at (expires_at),
+  CONSTRAINT fk_sessions_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_sessions_client_id FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
