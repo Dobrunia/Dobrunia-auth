@@ -4,6 +4,11 @@ import type { Env } from '../types/env.types';
 
 dotenv.config();
 
+function parsePositiveInt(raw: string, fallback: number): number {
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 function loadEnv(): Env {
   const parsed = envSchema.safeParse(process.env);
 
@@ -30,11 +35,11 @@ export const config = {
   jwt: {
     accessSecret: env.JWT_ACCESS_SECRET,
     refreshSecret: env.JWT_REFRESH_SECRET,
-    accessExpiresSec: parseInt(env.ACCESS_TOKEN_EXPIRES_SEC, 10),
-    refreshExpiresDays: parseInt(env.REFRESH_TOKEN_EXPIRES_DAYS, 10),
+    accessExpiresSec: parsePositiveInt(env.ACCESS_TOKEN_EXPIRES_SEC, 900),
+    refreshExpiresDays: parsePositiveInt(env.REFRESH_TOKEN_EXPIRES_DAYS, 30),
   },
   app: {
-    port: parseInt(env.PORT, 10),
+    port: parsePositiveInt(env.PORT, 3000),
     host: env.HOST,
   },
   cors: {

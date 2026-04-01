@@ -17,6 +17,7 @@ import {
   markOAuthCodeUsed,
 } from '../oauth-code.repository';
 import type { OauthTokenResult } from '../../../types/oauth.types';
+import { Log } from '../../../utils/log';
 
 const TOKEN_ERROR = 'Invalid authorization request';
 
@@ -105,6 +106,12 @@ export const oauthTokenService = {
         sub: row.user_id,
         sid: row.session_id,
         email,
+      });
+
+      Log.success('OAuth code exchanged for tokens', {
+        userId: row.user_id,
+        clientSlug: client.slug,
+        sessionId: row.session_id,
       });
 
       return {

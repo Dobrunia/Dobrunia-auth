@@ -10,6 +10,7 @@ import {
   signAccessToken,
 } from '../token.utils';
 import type { RegisterBody, RegisterContext, RegisterResult } from '../../../types/register.types';
+import { Log } from '../../../utils/log';
 import { findActiveClientByKey } from '../../clients/client.repository';
 import { findUserIdByEmail, insertUser } from '../../users/user.repository';
 import { insertSession } from '../../sessions/session.repository';
@@ -85,12 +86,19 @@ export const registerService = {
         expiresAt: refreshExpires,
       });
 
-      await connection.commit();
-
       const accessToken = signAccessToken({
         sub: userId,
         sid: sessionId,
         email: body.email,
+      });
+
+      await connection.commit();
+
+      Log.success('User registered', {
+        userId,
+        email: body.email,
+        clientSlug: client.slug,
+        sessionId,
       });
 
       return {

@@ -10,6 +10,7 @@ import {
   signAccessToken,
 } from '../token.utils';
 import type { LoginBody, LoginContext, LoginResult } from '../../../types/login.types';
+import { Log } from '../../../utils/log';
 import { findActiveClientByKey } from '../../clients/client.repository';
 import {
   findUserForPasswordAuth,
@@ -95,12 +96,19 @@ export const loginService = {
         expiresAt: refreshExpires,
       });
 
-      await connection.commit();
-
       const accessToken = signAccessToken({
         sub: user.id,
         sid: sessionId,
         email: user.email,
+      });
+
+      await connection.commit();
+
+      Log.success('User signed in', {
+        userId: user.id,
+        email: user.email,
+        clientSlug: client.slug,
+        sessionId,
       });
 
       return {

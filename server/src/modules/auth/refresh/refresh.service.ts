@@ -14,6 +14,7 @@ import {
   insertRefreshToken,
   revokeRefreshTokenReplacedBy,
 } from '../refresh-token.repository';
+import { Log } from '../../../utils/log';
 import { isSessionActiveForUser } from '../../sessions/session.repository';
 
 const REFRESH_INVALID = 'Invalid or expired refresh token';
@@ -78,6 +79,11 @@ export const refreshService = {
         sub: row.user_id,
         sid: row.session_id,
         email: row.email,
+      });
+
+      Log.info('Refresh token rotated', {
+        userId: row.user_id,
+        sessionId: row.session_id,
       });
 
       return { accessToken, refreshToken: plainRefresh };

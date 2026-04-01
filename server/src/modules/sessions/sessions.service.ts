@@ -14,6 +14,7 @@ import type {
   SessionListResponse,
   SessionListRow,
 } from '../../types/session-list.types';
+import { Log } from '../../utils/log';
 
 function toIso(value: Date | string | null | undefined): string | null {
   if (value == null) {
@@ -100,6 +101,8 @@ export const sessionsService = {
 
       await connection.commit();
       began = false;
+
+      Log.info('Session revoked by user (dashboard)', { userId, sessionId });
     } catch (e) {
       if (began) {
         await connection.rollback();

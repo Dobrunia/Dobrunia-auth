@@ -9,6 +9,7 @@ import { sessionsRouter } from './modules/sessions/sessions.routes';
 import { clientsRouter } from './modules/clients/clients.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { corsMiddleware } from './middleware/cors.middleware';
+import { Log } from './utils/log';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -30,35 +31,37 @@ async function bootstrap(): Promise<void> {
 
     // Connect to database
     await getDatabasePool();
-    console.log('Database connection established');
+    Log.info('Database connection established');
 
     // Run migrations
     await runMigrations();
-    console.log('Migrations completed');
+    Log.info('Migrations completed');
 
     // Middleware
     app.use(errorMiddleware);
 
     // Start server
     app.listen(config.app.port, () => {
-      console.log(`Server is running on port ${config.app.port}`);
-      console.log(`Health check: http://localhost:${config.app.port}/health`);
+      Log.success('HTTP server listening', {
+        port: config.app.port,
+        healthPath: '/health',
+      });
     });
 
     // Graceful shutdown
     process.on('SIGTERM', async () => {
-      console.log('SIGTERM received, shutting down gracefully');
+      Log.warn('SIGTERM received, shutting down');
       await closeDatabasePool();
       process.exit(0);
     });
 
     process.on('SIGINT', async () => {
-      console.log('SIGINT received, shutting down gracefully');
+      Log.warn('SIGINT received, shutting down');
       await closeDatabasePool();
       process.exit(0);
     });
   } catch (error) {
-    console.error('Failed to start application:', error);
+    Log.error('Failed to start application', error);
     process.exit(1);
   }
 }

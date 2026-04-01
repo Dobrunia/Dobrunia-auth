@@ -20,6 +20,7 @@ import { parseCookieHeader, serializeSetCookie } from '../../../utils/cookie.uti
 import { getClientIp, getUserAgent } from '../../../utils/request.utils';
 import { signOauthBrowserCookie, verifyOauthBrowserCookie } from '../oauth-browser.jwt';
 import { insertOAuthAuthorizationCode } from '../oauth-code.repository';
+import { Log } from '../../../utils/log';
 
 function firstQueryString(v: unknown): string | undefined {
   if (typeof v === 'string') {
@@ -176,6 +177,11 @@ export const oauthAuthorizeService = {
             redirectUri: params.redirect_uri,
             state: params.state,
           });
+          Log.success('OAuth authorization code issued (existing browser session)', {
+            userId: browser.sub,
+            clientSlug: client.slug,
+            sessionId: browser.sid,
+          });
           return { kind: 'redirect', location };
         }
       }
@@ -275,6 +281,12 @@ export const oauthAuthorizeService = {
       const cookie = signOauthBrowserCookie({
         sid: loginResult.session.id,
         sub: loginResult.user.id,
+      });
+
+      Log.info('OAuth hosted login: cookie set, redirect to authorize GET', {
+        userId: loginResult.user.id,
+        clientSlug: client.slug,
+        sessionId: loginResult.session.id,
       });
 
       return {

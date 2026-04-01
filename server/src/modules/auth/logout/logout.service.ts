@@ -6,6 +6,7 @@ import {
   findActiveRefreshTokenByHash,
   revokeRefreshTokenById,
 } from '../refresh-token.repository';
+import { Log } from '../../../utils/log';
 import { revokeSessionById } from '../../sessions/session.repository';
 
 export const logoutService = {
@@ -37,6 +38,8 @@ export const logoutService = {
       );
 
       await connection.commit();
+
+      Log.info('User signed out (refresh logout)', { sessionId: row.session_id });
     } catch (err) {
       await connection.rollback();
       throw err;
