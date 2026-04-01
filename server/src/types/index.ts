@@ -15,4 +15,9 @@ export type {
   RefreshTokenId,
 } from './refresh-token.types';
 export type { Session, SessionId, SessionStatus } from './session.types';
+export type {
+  SessionListItemDto,
+  SessionListResponse,
+  SessionListRow,
+} from './session-list.types';
 export type { User, UserId, UserPasswordAuthRow } from './user.types';

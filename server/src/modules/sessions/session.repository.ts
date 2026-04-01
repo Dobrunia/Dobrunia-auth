@@ -1,4 +1,5 @@
 import type { PoolConnection } from 'mysql2/promise';
+import type { SessionListRow } from '../../types/session-list.types';
 
 export async function isSessionActiveForUser(
   connection: PoolConnection,
@@ -47,6 +48,79 @@ export async function revokeSessionById(
      WHERE id = ? AND status = ?`,
     [statusRevoked, reason, sessionId, statusActive]
   );
+}
+
+/**
+ * Все сессии пользователя с данными клиента (дашборд).
+ * Сортировка: свежие last_seen, затем по дате создания.
+ */
+export async function listSessionsForUser(
+  connection: PoolConnection,
+  userId: string
+): Promise<SessionListRow[]> {
+  const [rows] = await connection.query(
+    `SELECT
+       s.id,
+       s.user_id,
+       s.client_id,
+       s.status,
+       s.ip_address,
+       s.user_agent,
+       s.last_seen_at,
+       s.created_at,
+       s.revoked_at,
+       s.revoke_reason,
+       c.slug AS client_slug,
+       c.name AS client_name
+     FROM sessions s
+     INNER JOIN clients c ON c.id = s.client_id
+     WHERE s.user_id = ?
+     ORDER BY (s.last_seen_at IS NULL), s.last_seen_at DESC, s.created_at DESC`,
+    [userId]
+  );
+  return rows as SessionListRow[];
+}
+
+export async function listSessionsForUserAndClient(
+  connection: PoolConnection,
+  userId: string,
+  clientId: string
+): Promise<SessionListRow[]> {
+  const [rows] = await connection.query(
+    `SELECT
+       s.id,
+       s.user_id,
+       s.client_id,
+       s.status,
+       s.ip_address,
+       s.user_agent,
+       s.last_seen_at,
+       s.created_at,
+       s.revoked_at,
+       s.revoke_reason,
+       c.slug AS client_slug,
+       c.name AS client_name
+     FROM sessions s
+     INNER JOIN clients c ON c.id = s.client_id
+     WHERE s.user_id = ? AND s.client_id = ?
+     ORDER BY (s.last_seen_at IS NULL), s.last_seen_at DESC, s.created_at DESC`,
+    [userId, clientId]
+  );
+  return rows as SessionListRow[];
+}
+
+/** Сессия принадлежит пользователю (любой статус). */
+export async function findSessionByIdForUser(
+  connection: PoolConnection,
+  sessionId: string,
+  userId: string
+): Promise<{ id: string } | null> {
+  const [rows] = await connection.query(
+    'SELECT id FROM sessions WHERE id = ? AND user_id = ? LIMIT 1',
+    [sessionId, userId]
+  );
+  const list = rows as { id: string }[];
+  return list[0] ?? null;
 }
 
 export async function insertSession(

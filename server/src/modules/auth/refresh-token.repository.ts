@@ -61,6 +61,20 @@ export async function revokeRefreshTokenById(
   );
 }
 
+/** Отзыв всех ещё активных refresh для сессии (дашборд / принудительный logout сессии). */
+export async function revokeAllActiveRefreshTokensForSession(
+  connection: PoolConnection,
+  sessionId: string,
+  reason: string
+): Promise<void> {
+  await connection.execute(
+    `UPDATE refresh_tokens
+     SET revoked_at = CURRENT_TIMESTAMP(3), revoke_reason = ?
+     WHERE session_id = ? AND revoked_at IS NULL`,
+    [reason, sessionId]
+  );
+}
+
 export async function insertRefreshToken(
   connection: PoolConnection,
   params: {

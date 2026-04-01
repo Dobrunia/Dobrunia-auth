@@ -5,6 +5,8 @@ import { runMigrations } from './db/migrate';
 import { healthRouter } from './modules/health/health.routes';
 import { authRouter } from './modules/auth/auth.routes';
 import { oauthRouter } from './modules/oauth/oauth.routes';
+import { sessionsRouter } from './modules/sessions/sessions.routes';
+import { clientsRouter } from './modules/clients/clients.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 
 async function bootstrap(): Promise<void> {
@@ -21,6 +23,8 @@ async function bootstrap(): Promise<void> {
     app.use('/health', healthRouter);
     app.use('/auth', authRouter);
     app.use('/oauth', oauthRouter);
+    app.use('/sessions', sessionsRouter);
+    app.use('/clients', clientsRouter);
 
     // Connect to database
     await getDatabasePool();
