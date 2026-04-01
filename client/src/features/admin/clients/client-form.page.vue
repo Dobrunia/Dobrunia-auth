@@ -129,7 +129,14 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { DbrCard, DbrButton, DbrInput, DbrToggle, DbrBadge } from 'dobruniaui-vue';
 import { createOAuthClient, updateOAuthClient, getOAuthClient } from '../../../shared/api/admin';
-import { AVAILABLE_SCOPES, AVAILABLE_GRANT_TYPES, CLIENT_FORM_DEFAULTS, ADMIN_ROUTES } from '../../../constants/admin.constants';
+import {
+  AVAILABLE_SCOPES,
+  AVAILABLE_GRANT_TYPES,
+  CLIENT_FORM_DEFAULTS,
+  ADMIN_ROUTES,
+  type AvailableOAuthScope,
+  type AvailableGrantType,
+} from '../../../constants/admin.constants';
 import type { OAuthClientWithSecret } from '../../../shared/api/admin';
 
 const router = useRouter();
@@ -140,9 +147,9 @@ const isEdit = computed(() => route.query.mode === 'edit' || !!route.params.id);
 const form = reactive({
   name: '',
   redirect_uris: [''],
-  allowed_scopes: [...CLIENT_FORM_DEFAULTS.allowed_scopes],
-  grant_types: [...CLIENT_FORM_DEFAULTS.grant_types],
-  is_active: CLIENT_FORM_DEFAULTS.is_active,
+  allowed_scopes: [...CLIENT_FORM_DEFAULTS.allowed_scopes] as AvailableOAuthScope[],
+  grant_types: [...CLIENT_FORM_DEFAULTS.grant_types] as AvailableGrantType[],
+  is_active: CLIENT_FORM_DEFAULTS.is_active as boolean,
 });
 
 const errors = reactive<Record<string, string>>({});
@@ -161,7 +168,7 @@ function removeRedirectUri(index: number) {
   form.redirect_uris.splice(index, 1);
 }
 
-function toggleScope(scope: string) {
+function toggleScope(scope: AvailableOAuthScope) {
   const index = form.allowed_scopes.indexOf(scope);
   if (index === -1) {
     form.allowed_scopes.push(scope);
@@ -170,7 +177,7 @@ function toggleScope(scope: string) {
   }
 }
 
-function toggleGrant(grant: string) {
+function toggleGrant(grant: AvailableGrantType) {
   const index = form.grant_types.indexOf(grant);
   if (index === -1) {
     form.grant_types.push(grant);
@@ -248,8 +255,8 @@ async function loadClientForEdit() {
     const client = await getOAuthClient(Number(route.params.id));
     form.name = client.name;
     form.redirect_uris = client.redirect_uris.length > 0 ? client.redirect_uris : [''];
-    form.allowed_scopes = client.allowed_scopes;
-    form.grant_types = client.grant_types;
+    form.allowed_scopes = client.allowed_scopes as AvailableOAuthScope[];
+    form.grant_types = client.grant_types as AvailableGrantType[];
     form.is_active = client.is_active;
   } catch (err) {
     error.value = 'Failed to load client';

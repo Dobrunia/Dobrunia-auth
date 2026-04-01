@@ -25,7 +25,11 @@ export const AVAILABLE_SCOPES = [
   'offline_access',
 ] as const;
 
+export type AvailableOAuthScope = (typeof AVAILABLE_SCOPES)[number];
+
 export const AVAILABLE_GRANT_TYPES = [
   'authorization_code',
   'refresh_token',
 ] as const;
+
+export type AvailableGrantType = (typeof AVAILABLE_GRANT_TYPES)[number];

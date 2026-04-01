@@ -70,7 +70,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { DbrCard, DbrButton, DbrLoader, DbrBadge } from 'dobruniaui-vue';
 import { getOAuthClients, deleteOAuthClient } from '../../../shared/api/admin';
-import type { OAuthClient } from '../../../server/src/types/oauth-client.types';
+import type { OAuthClient } from '../../../../../server/src/types/oauth-client.types';
 import { ADMIN_ROUTES } from '../../../constants/admin.constants';
 
 const router = useRouter();

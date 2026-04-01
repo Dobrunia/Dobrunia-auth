@@ -26,6 +26,8 @@ const envSchema = z.object({
   APP_URL: z.string().default('http://localhost:3000'),
   AUTH_ISSUER: z.string().default('http://localhost:3000'),
   FRONTEND_URL: z.string().default('http://localhost:5173'),
+  /** Comma-separated list; defaults to FRONTEND_URL when empty (e.g. extra Vite ports) */
+  CORS_ORIGINS: z.string().optional(),
 
   // Server
   PORT: z.string().default('3000'),
@@ -47,6 +49,10 @@ function loadEnv(): Env {
 }
 
 const env = loadEnv();
+
+const corsOrigins = env.CORS_ORIGINS
+  ? env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  : [env.FRONTEND_URL];
 
 export const config = {
   database: {
