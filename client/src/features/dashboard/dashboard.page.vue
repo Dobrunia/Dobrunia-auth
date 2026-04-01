@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { DbrCard, DbrButton, DbrLoader, DbrAvatar } from 'dobruniaui-vue';
-import { API_BASE_URL } from '../constants/app.constants';
+import { API_BASE_URL } from '../../constants/app.constants';
 
 interface UserInfo {
   sub: string;

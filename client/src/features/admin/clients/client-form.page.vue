@@ -103,7 +103,7 @@
 
       <DbrCard v-if="createdClient" title="Client Created" class="credentials-card">
         <div class="credentials-warning">
-          <DbrBadge variant="warning">Important</DbrBadge>
+          <DbrBadge variant="danger">Important</DbrBadge>
           <p>
             <strong>Save this client secret!</strong> It will not be shown again.
           </p>
@@ -128,9 +128,9 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { DbrCard, DbrButton, DbrInput, DbrToggle, DbrBadge } from 'dobruniaui-vue';
-import { createOAuthClient, updateOAuthClient, getOAuthClient } from '../../shared/api/admin';
-import { AVAILABLE_SCOPES, AVAILABLE_GRANT_TYPES, CLIENT_FORM_DEFAULTS, ADMIN_ROUTES } from '../../constants/admin.constants';
-import type { OAuthClientWithSecret } from '../../shared/api/admin';
+import { createOAuthClient, updateOAuthClient, getOAuthClient } from '../../../shared/api/admin';
+import { AVAILABLE_SCOPES, AVAILABLE_GRANT_TYPES, CLIENT_FORM_DEFAULTS, ADMIN_ROUTES } from '../../../constants/admin.constants';
+import type { OAuthClientWithSecret } from '../../../shared/api/admin';
 
 const router = useRouter();
 const route = useRoute();

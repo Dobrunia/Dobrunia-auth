@@ -4,11 +4,7 @@ import App from './App.vue';
 import { ROUTES } from './constants/app.constants';
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: { template: '<div>Home</div>' },
-  },
+  { path: '/', name: 'home', redirect: ROUTES.LOGIN },
   {
     path: ROUTES.REGISTER,
     name: 'register',

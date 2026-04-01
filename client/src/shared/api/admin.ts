@@ -1,5 +1,5 @@
 import { request } from './request';
-import type { OAuthClient } from '../types/oauth-client.types';
+import type { OAuthClient } from '../../../../server/src/types/oauth-client.types';
 
 export interface OAuthClientInput {
   name: string;
@@ -43,7 +43,10 @@ export async function createOAuthClient(input: OAuthClientInput): Promise<OAuthC
 /**
  * Update OAuth client
  */
-export async function updateOAuthClient(id: number, input: Partial<OAuthClientInput>): Promise<OAuthClient> {
+export async function updateOAuthClient(
+  id: number,
+  input: Partial<OAuthClientInput>
+): Promise<OAuthClient> {
   const response = await request<{ data: OAuthClient }>(`/oauth/clients/${id}`, {
     method: 'PATCH',
     data: input,
@@ -54,7 +57,9 @@ export async function updateOAuthClient(id: number, input: Partial<OAuthClientIn
 /**
  * Regenerate OAuth client secret
  */
-export async function regenerateClientSecret(id: number): Promise<{ client_id: string; client_secret: string }> {
+export async function regenerateClientSecret(
+  id: number
+): Promise<{ client_id: string; client_secret: string }> {
   const response = await request<{ data: { client_id: string; client_secret: string } }>(
     `/oauth/clients/${id}/regenerate-secret`,
     {

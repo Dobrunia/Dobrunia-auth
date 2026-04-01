@@ -34,7 +34,7 @@
           <div class="client-info">
             <div class="client-name">
               <h3>{{ client.name }}</h3>
-              <DbrBadge v-if="client.is_active" variant="success">Active</DbrBadge>
+              <DbrBadge v-if="client.is_active">Active</DbrBadge>
               <DbrBadge v-else variant="danger">Inactive</DbrBadge>
             </div>
             <p class="client-id">Client ID: <code>{{ client.client_id }}</code></p>
@@ -69,9 +69,9 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { DbrCard, DbrButton, DbrLoader, DbrBadge } from 'dobruniaui-vue';
-import { getOAuthClients, deleteOAuthClient } from '../../shared/api/admin';
-import type { OAuthClient } from '../../types/oauth-client.types';
-import { ADMIN_ROUTES } from '../../constants/admin.constants';
+import { getOAuthClients, deleteOAuthClient } from '../../../shared/api/admin';
+import type { OAuthClient } from '../../../server/src/types/oauth-client.types';
+import { ADMIN_ROUTES } from '../../../constants/admin.constants';
 
 const router = useRouter();
 

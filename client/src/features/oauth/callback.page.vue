@@ -13,8 +13,7 @@
 import { onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { DbrCard, DbrLoader } from 'dobruniaui-vue';
-import { API_BASE_URL } from '../constants/app.constants';
-import { ROUTES } from '../constants/app.constants';
+import { API_BASE_URL, ROUTES } from '../../constants/app.constants';
 
 const router = useRouter();
 const route = useRoute();

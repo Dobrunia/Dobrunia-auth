@@ -52,9 +52,9 @@
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { DbrCard, DbrInput, DbrButton } from 'dobruniaui-vue';
-import { loginSchema, type LoginInput } from '../shared/schemas';
-import { request } from '../shared/api/request';
-import { ROUTES } from '../constants/app.constants';
+import { loginSchema, type LoginInput } from '../../../shared/schemas';
+import { request } from '../../../shared/api/request';
+import { ROUTES } from '../../../constants/app.constants';
 
 const router = useRouter();
 

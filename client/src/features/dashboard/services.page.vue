@@ -49,7 +49,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { DbrCard, DbrButton, DbrLoader } from 'dobruniaui-vue';
-import { API_BASE_URL } from '../constants/app.constants';
+import { API_BASE_URL } from '../../constants/app.constants';
 
 interface ActiveService {
   client_id: number;
