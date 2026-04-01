@@ -1,10 +1,11 @@
 export type { AccessTokenPayload } from './access-token.types';
-export type { Client, ClientId, ClientRow } from './client.types';
+export type { Client, ClientId, ClientRow, ClientRowWithOAuth } from './client.types';
 export type { Env } from './env.types';
 export type { HealthStatus } from './health.types';
 export type { LoginBody, LoginContext, LoginResult } from './login.types';
 export type { LogoutBody } from './logout.types';
 export type { MeResponse, MeSessionDto, MeUserDto } from './me.types';
+export type { OauthTokenResult } from './oauth.types';
 export type { RefreshAuthBody, RefreshAuthResult } from './refresh-auth.types';
 export type { RegisterBody, RegisterContext, RegisterResult } from './register.types';
 export type {

@@ -4,6 +4,7 @@ import { getDatabasePool, closeDatabasePool } from './db/database';
 import { runMigrations } from './db/migrate';
 import { healthRouter } from './modules/health/health.routes';
 import { authRouter } from './modules/auth/auth.routes';
+import { oauthRouter } from './modules/oauth/oauth.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 
 async function bootstrap(): Promise<void> {
@@ -19,6 +20,7 @@ async function bootstrap(): Promise<void> {
     // Routes
     app.use('/health', healthRouter);
     app.use('/auth', authRouter);
+    app.use('/oauth', oauthRouter);
 
     // Connect to database
     await getDatabasePool();

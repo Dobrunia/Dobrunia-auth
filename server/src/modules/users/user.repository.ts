@@ -10,6 +10,18 @@ export async function findUserIdByEmail(
   return list[0]?.id ?? null;
 }
 
+export async function findUserEmailById(
+  connection: PoolConnection,
+  userId: string
+): Promise<string | null> {
+  const [rows] = await connection.query(
+    'SELECT email FROM users WHERE id = ? LIMIT 1',
+    [userId]
+  );
+  const list = rows as { email: string }[];
+  return list[0]?.email ?? null;
+}
+
 export async function findUserForPasswordAuth(
   connection: PoolConnection,
   email: string

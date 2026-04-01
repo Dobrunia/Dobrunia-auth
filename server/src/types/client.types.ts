@@ -7,6 +7,14 @@ export interface ClientRow {
   name: string;
 }
 
+/** Клиент + список точных redirect_uri для OAuth (из JSON колонки). */
+export interface ClientRowWithOAuth {
+  id: string;
+  slug: string;
+  name: string;
+  oauthRedirectUris: string[];
+}
+
 export interface Client {
   id: ClientId;
   name: string;
