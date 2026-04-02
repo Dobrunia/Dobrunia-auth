@@ -21,6 +21,8 @@ export const ROUTES = {
   /** Старый путь; редирект на HOME */
   SESSIONS: '/sessions',
   OAUTH_CALLBACK: '/oauth/callback',
+  /** Мост OAuth → тот же UI логина; query: return_url = полный URL GET /oauth/authorize */
+  OAUTH_BRIDGE: '/oauth-bridge',
 } as const;
 
 export const API_BASE_URL = clientConfig.apiUrl;

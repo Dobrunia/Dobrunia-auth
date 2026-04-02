@@ -8,6 +8,7 @@ import {
   OAUTH_BROWSER_COOKIE_MAX_AGE_SEC,
   OAUTH_BROWSER_COOKIE_NAME,
 } from '../../../constants/oauth.constants';
+import { config } from '../../../config';
 import { getDatabasePool } from '../../../db/database';
 import { HttpError } from '../../../middleware/error.middleware';
 import { findActiveClientWithOAuthRedirects } from '../../clients/client.repository';
@@ -17,7 +18,7 @@ import { loginService } from '../../auth/login/login.service';
 import { oauthAuthorizeParamsSchema, oauthAuthorizePostBodySchema } from '../../../utils/schemas/oauth.schema';
 import { oauthErrorPage, oauthLoginFormPage } from '../../../utils/oauth-html.utils';
 import { parseCookieHeader, serializeSetCookie } from '../../../utils/cookie.utils';
-import { getClientIp, getUserAgent } from '../../../utils/request.utils';
+import { buildAbsoluteRequestUrl, getClientIp, getUserAgent } from '../../../utils/request.utils';
 import { signOauthBrowserCookie, verifyOauthBrowserCookie } from '../oauth-browser.jwt';
 import { insertOAuthAuthorizationCode } from '../oauth-code.repository';
 import { Log } from '../../../utils/log';
@@ -184,6 +185,14 @@ export const oauthAuthorizeService = {
           });
           return { kind: 'redirect', location };
         }
+      }
+
+      const authWeb = config.oauth.authWebPublicUrl;
+      if (authWeb.length > 0) {
+        const returnAuthorize = buildAbsoluteRequestUrl(req);
+        const bridge = new URL('/oauth-bridge', `${authWeb}/`);
+        bridge.searchParams.set('return_url', returnAuthorize);
+        return { kind: 'redirect', location: bridge.toString() };
       }
 
       return {

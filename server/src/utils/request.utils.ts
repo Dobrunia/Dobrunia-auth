@@ -27,3 +27,12 @@ export function getBearerToken(req: Request): string | null {
   const m = /^Bearer\s+(\S+)/i.exec(h.trim());
   return m?.[1] ?? null;
 }
+
+/** Полный URL запроса (path + query) — для OAuth `return_url`. Учитывает `X-Forwarded-Proto` за прокси. */
+export function buildAbsoluteRequestUrl(req: Request): string {
+  const host = req.get('host') ?? 'localhost';
+  const xfProto = req.get('x-forwarded-proto');
+  const proto =
+    (typeof xfProto === 'string' && xfProto.split(',')[0]?.trim()) || (req.secure ? 'https' : 'http');
+  return `${proto}://${host}${req.originalUrl}`;
+}

@@ -13,7 +13,7 @@
     <template #footer>
       <RouterLink
         v-slot="{ navigate }"
-        :to="{ path: ROUTES.REGISTER, query: { client: clientSlug } }"
+        :to="{ path: ROUTES.REGISTER, query: registerQuery }"
         custom
       >
         <DbrButton variant="ghost" size="sm" native-type="button" class="dbru-focusable" @click="navigate">
@@ -30,9 +30,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { DbrButton } from 'dobruniaui-vue';
 import { login } from '@/api/auth-api';
 import { ApiError } from '@/api/http';
+import { establishOAuthBrowserSession } from '@/api/oauth-browser-session';
 import AuthCredentialsForm from '@/components/AuthCredentialsForm.vue';
 import { clientConfig } from '@/config';
 import { ROUTES } from '@/constants/app.constants';
+import { isAllowedOAuthReturnUrl } from '@/lib/oauth-return-url';
 import { tokenStorage } from '@/lib/token-storage';
 
 const route = useRoute();
@@ -41,6 +43,15 @@ const router = useRouter();
 const clientSlug = computed(
   () => (typeof route.query.client === 'string' && route.query.client) || clientConfig.defaultClientSlug
 );
+
+const registerQuery = computed(() => {
+  const base: Record<string, string> = { client: clientSlug.value };
+  if (route.query.oauth === '1' && typeof route.query.return_url === 'string') {
+    base.oauth = '1';
+    base.return_url = route.query.return_url;
+  }
+  return base;
+});
 
 const email = ref('');
 const password = ref('');
@@ -57,6 +68,15 @@ async function onSubmit() {
       clientId: clientSlug.value,
     });
     tokenStorage.setTokens(res.accessToken, res.refreshToken);
+    const oauthReturn =
+      route.query.oauth === '1' && typeof route.query.return_url === 'string'
+        ? route.query.return_url
+        : '';
+    if (oauthReturn && isAllowedOAuthReturnUrl(oauthReturn)) {
+      await establishOAuthBrowserSession(res.accessToken);
+      globalThis.location.assign(oauthReturn);
+      return;
+    }
     const returnTo = typeof route.query.returnTo === 'string' ? route.query.returnTo : ROUTES.HOME;
     await router.replace(returnTo || ROUTES.HOME);
   } catch (e) {

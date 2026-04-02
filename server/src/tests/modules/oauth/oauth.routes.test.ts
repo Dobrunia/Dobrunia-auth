@@ -100,6 +100,13 @@ describe('POST /oauth/token', () => {
   });
 });
 
+describe('POST /oauth/browser-session', () => {
+  it('возвращает 401 без Authorization', async () => {
+    const res = await request(buildApp()).post('/oauth/browser-session');
+    expect(res.status).toBe(401);
+  });
+});
+
 describe('GET /oauth/authorize', () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -20,8 +20,30 @@ export const envSchema = z.object({
   PORT: z.string().default('3000'),
   HOST: z.string().default('localhost'),
 
-  /** Разрешённые Origin для SPA auth-web (через запятую). Пустая строка — не слать CORS. */
+  /** Разрешённые Origin для SPA (через запятую). Пустая строка — не слать CORS (кроме режима reflect). */
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:5173,http://localhost:5174'),
+
+  /**
+   * Публичный URL SPA (auth-web), без завершающего слэша, напр. https://auth.example.com.
+   * Если задан: GET /oauth/authorize без куки редиректит на {URL}/oauth-bridge?return_url=…
+   * и его **origin** автоматически добавляется к списку CORS (не нужно дублировать в CORS_ORIGINS).
+   */
+  AUTH_WEB_PUBLIC_URL: z.string().default(''),
+
+  /**
+   * Если true: для любого запроса с заголовком Origin, прошедшим проверку `isReflectableOrigin`,
+   * ответ содержит `Access-Control-Allow-Origin: <тот же Origin>` и `Allow-Credentials: true`.
+   * Нужно, чтобы браузерные SPA на **любых доменах** (магазины, партнёрские приложения) могли звать API с Bearer/credentials.
+   * В production по умолчанию отражаются только https (и localhost/http для dev); см. CORS_REFLECT_HTTPS_ONLY.
+   */
+  CORS_REFLECT_ORIGIN: z.string().default('false'),
+
+  /**
+   * Пусто — при CORS_REFLECT_ORIGIN в production отражать только https (+ localhost http).
+   * `false` — разрешить и http-Origin (только если понимаете риски).
+   * `true` — только https (+ localhost).
+   */
+  CORS_REFLECT_HTTPS_ONLY: z.string().default(''),
 });

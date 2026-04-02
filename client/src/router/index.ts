@@ -17,6 +17,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     { path: ROUTES.ACCOUNT, component: () => import('@/view/AccountSelectPage.vue') },
+    { path: ROUTES.OAUTH_BRIDGE, component: () => import('@/view/OAuthBridgePage.vue') },
     { path: ROUTES.LOGIN, component: () => import('@/view/LoginPage.vue') },
     { path: ROUTES.REGISTER, component: () => import('@/view/RegisterPage.vue') },
     { path: ROUTES.OAUTH_CALLBACK, component: () => import('@/view/OAuthCallbackPage.vue') },
@@ -33,8 +34,19 @@ router.beforeEach((to) => {
     };
   }
 
-  if (authed && (to.path === ROUTES.LOGIN || to.path === ROUTES.REGISTER)) {
+  if (
+    authed &&
+    (to.path === ROUTES.LOGIN || to.path === ROUTES.REGISTER) &&
+    to.query.oauth !== '1'
+  ) {
     return ROUTES.HOME;
+  }
+
+  if (authed && to.path === ROUTES.LOGIN && to.query.oauth === '1') {
+    const raw = typeof to.query.return_url === 'string' ? to.query.return_url : '';
+    if (raw) {
+      return { path: ROUTES.OAUTH_BRIDGE, query: { return_url: raw } };
+    }
   }
 
   return true;

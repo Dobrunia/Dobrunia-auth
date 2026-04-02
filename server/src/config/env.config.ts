@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import { JWT_DEFAULT_ACCESS_EXPIRES_SEC, JWT_DEFAULT_REFRESH_EXPIRES_DAYS } from '../constants/jwt.constants';
 import { envSchema } from './env.schema';
 import type { Env } from '../types/env.types';
+import { mergeCorsOriginsCsv } from '../utils/cors.utils';
 
 dotenv.config();
 
@@ -24,6 +25,13 @@ function loadEnv(): Env {
 
 const env = loadEnv();
 
+const reflectHttpsOnly =
+  env.CORS_REFLECT_HTTPS_ONLY === 'true' || env.CORS_REFLECT_HTTPS_ONLY === '1'
+    ? true
+    : env.CORS_REFLECT_HTTPS_ONLY === 'false' || env.CORS_REFLECT_HTTPS_ONLY === '0'
+      ? false
+      : process.env.NODE_ENV === 'production';
+
 export const config = {
   database: {
     url: env.DATABASE_URL,
@@ -44,17 +52,12 @@ export const config = {
     host: env.HOST,
   },
   cors: {
-    origins: parseCorsOrigins(env.CORS_ORIGINS),
+    origins: mergeCorsOriginsCsv(env.CORS_ORIGINS, env.AUTH_WEB_PUBLIC_URL),
+    reflectOrigin:
+      env.CORS_REFLECT_ORIGIN === '1' || env.CORS_REFLECT_ORIGIN.toLowerCase() === 'true',
+    reflectHttpsOnly,
+  },
+  oauth: {
+    authWebPublicUrl: env.AUTH_WEB_PUBLIC_URL.trim().replace(/\/$/, ''),
   },
 } as const;
-
-function parseCorsOrigins(raw: string): string[] {
-  const t = raw.trim();
-  if (t === '') {
-    return [];
-  }
-  return t
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}

@@ -6,9 +6,13 @@
 
 ### CORS (браузерный фронт на другом origin)
 
-- **`CORS_ORIGINS`**: разрешённые значения заголовка `Origin` через запятую, например `http://localhost:5173,https://auth.example.com`. По умолчанию: `http://localhost:5173,http://localhost:5174` (основной auth-web и каталог `example/`).
-- Если в списке есть **`*`**, выставляется `Access-Control-Allow-Origin: *` (удобно только для отладки).
-- Preflight **`OPTIONS`** — ответ **`204`** и те же правила заголовков. Разрешены методы `GET`, `POST`, `DELETE` и заголовки `Authorization`, `Content-Type`.
+- **`CORS_ORIGINS`**: разрешённые значения заголовка `Origin` через запятую, например `https://shop.example,https://admin.partner.ru`. По умолчанию в dev: `http://localhost:5173,http://localhost:5174`.
+- **`AUTH_WEB_PUBLIC_URL`**: если задан (например `https://auth.dobrunia.ru`), его **origin** автоматически добавляется к эффективному списку CORS — не обязательно дублировать тот же URL в `CORS_ORIGINS`.
+- **`CORS_REFLECT_ORIGIN=true`**: для **любого** запроса с заголовком `Origin`, прошедшего проверку (только схемы `http`/`https`, валидный hostname), сервер отвечает `Access-Control-Allow-Origin: <значение Origin>` и **`Access-Control-Allow-Credentials: true`**. Так браузерные SPA на **произвольных доменах** (витрины, партнёрские приложения) могут вызывать API с Bearer и `credentials: 'include'` (в т.ч. `POST /oauth/browser-session`). Риск: любой сайт может читать ответы **только к запросам, которые он сам инициирует**; секреты пользователя (токены) по-прежнему не утекают без участия вашего JS на странице атакующего.
+- **`CORS_REFLECT_HTTPS_ONLY`**: `true` / `false` / пусто. Пусто: в **`NODE_ENV=production`** при включённом reflect разрешены только **`https:`** и **http для `localhost` / `127.0.0.1`**; в dev — и `http`. Явно `false` — разрешить отражать и обычный `http` (понимая риски). Явно `true` — только https (+ localhost http).
+- Если в **`CORS_ORIGINS`** есть **`*`**, выставляется `Access-Control-Allow-Origin: *` **без** `Allow-Credentials` (ограничение спецификации).
+- Preflight **`OPTIONS`** — **`204`** и те же правила. Разрешены методы `GET`, `POST`, `DELETE` и заголовки `Authorization`, `Content-Type`.
+- Режим **reflect** обрабатывается **раньше** проверки списка `CORS_ORIGINS`: при `CORS_REFLECT_ORIGIN=true` и валидном `Origin` список для этого запроса не ограничивает.
 
 ---
 
@@ -181,8 +185,9 @@
 - **Query (обязательные):** `client_id` (UUID или `slug` клиента), `redirect_uri` (точное совпадение с одним из значений в `clients.oauth_redirect_uris`), `response_type` — только значение `code`.
 - **Query (опционально):** `state` — произвольная строка клиента (CSRF); возвращается в редиректе на `redirect_uri` без изменений.
 - **Проверки:** клиент активен; для клиента задан непустой JSON-массив разрешённых `redirect_uri`; переданный `redirect_uri` **точно** совпадает с одним из них.
-- **Уже вошёл:** если есть httpOnly-кука `dobrunia_oauth` (JWT после успешного `POST /oauth/authorize`) и сессия в БД всё ещё `active` для этого же `client_id`, выдаётся одноразовый `code` и выполняется **302** на `redirect_uri?code=...&state=...` (параметры добавляются к URL callback).
-- **Иначе:** **200** `text/html` — простая страница входа (форма `POST /oauth/authorize` с теми же полями в hidden + email/password).
+- **Уже вошёл:** если есть httpOnly-кука `dobrunia_oauth` (JWT после успешного `POST /oauth/authorize` или `POST /oauth/browser-session`) и сессия в БД всё ещё `active` для этого же `client_id`, выдаётся одноразовый `code` и выполняется **302** на `redirect_uri?code=...&state=...` (параметры добавляются к URL callback).
+- **Иначе, если задан `AUTH_WEB_PUBLIC_URL`:** **302** на SPA `{AUTH_WEB_PUBLIC_URL}/oauth-bridge?return_url=<полный URL этого GET /oauth/authorize>`. Дальше пользователь входит на том же UI, что и основной auth-web (`/login`, `/register`), после чего SPA вызывает `POST /oauth/browser-session` и возвращает браузер на `return_url` — с кукой уже выдаётся `code`.
+- **Иначе (переменная пуста):** **200** `text/html` — встроенная страница входа (форма `POST /oauth/authorize` с hidden + email/password).
 - **Ошибки конфигурации / параметров:** **400** HTML-страница с пояснением (нельзя безопасно редиректить на неизвестный `redirect_uri`).
 
 ---
@@ -197,6 +202,18 @@
 - **Успех:** **302** на `GET /oauth/authorize?...` (те же параметры), заголовок **`Set-Cookie`**: кука браузерной OAuth-сессии (`dobrunia_oauth`, httpOnly, `SameSite=Lax`, в production добавляется `Secure`). Второй заход по редиректу на GET обычно сразу выдаёт `code` и уводит на приложение.
 - **Неверный пароль:** **401** HTML с формой и общим текстом ошибки (без детализации).
 - **Остальное:** **400** HTML при невалидных параметрах; прочие ошибки — по общим правилам (например **409** через middleware, если сработает защита от дубликатов).
+
+---
+
+## `POST /oauth/browser-session`
+
+### Flow
+
+- **Зачем:** после логина на SPA (JSON `POST /auth/login` или register) выставить ту же httpOnly-куку `dobrunia_oauth`, что и после hosted `POST /oauth/authorize`, чтобы следующий заход на `GET /oauth/authorize` сразу выдал `code`.
+- **Заголовок:** `Authorization: Bearer <accessToken>` — валидный access JWT; сессия в БД должна быть `active` (та же проверка, что у `GET /auth/me`).
+- **CORS:** запрос с другого origin — только из списка `CORS_ORIGINS`, с **`credentials: 'include'`** на клиенте.
+- **Успех:** **`204`**, заголовок **`Set-Cookie`** (кука браузерной OAuth-сессии, параметры как у успешного `POST /oauth/authorize`).
+- **Ошибки:** **`401`** (нет Bearer, невалидный JWT, сессия не активна).
 
 ---
 
