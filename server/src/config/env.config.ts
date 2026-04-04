@@ -19,6 +19,7 @@ function applyHostingEnvAliases(): void {
   if (e.DB_CONNECTION_STRING && !e.DATABASE_URL) e.DATABASE_URL = e.DB_CONNECTION_STRING;
   if (e.APP_PORT && !e.PORT) e.PORT = e.APP_PORT;
   if (e.APP_IP && !e.HOST) e.HOST = e.APP_IP;
+  if (e.FRONTEND_URL && !e.AUTH_WEB_PUBLIC_URL) e.AUTH_WEB_PUBLIC_URL = e.FRONTEND_URL;
 }
 
 applyHostingEnvAliases();

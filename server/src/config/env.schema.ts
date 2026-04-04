@@ -22,10 +22,8 @@ export const envSchema = z.object({
   PORT: z.string().default('3000'),
   HOST: z.string().default('localhost'),
 
-  /** Разрешённые Origin для SPA (через запятую). Пустая строка — не слать CORS (кроме режима reflect). */
-  CORS_ORIGINS: z
-    .string()
-    .default('http://localhost:5173,http://localhost:5174'),
+  /** Разрешённые Origin для SPA (через запятую). Пустая — только из AUTH_WEB_PUBLIC_URL + reflect. */
+  CORS_ORIGINS: z.string().default(''),
 
   /**
    * Публичный URL SPA (auth-web), без завершающего слэша, напр. https://auth.example.com.
