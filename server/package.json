@@ -1,6 +1,6 @@
 {
   "name": "dobrunia-auth-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Dobrunia OAuth / SSO Service - Server",
   "main": "dist/index.js",
   "scripts": {
