@@ -388,22 +388,25 @@ describe('Безопасность и контракт тел ответов /au
       });
       const mockConnection = {
         release: vi.fn(),
-        query: vi.fn().mockResolvedValueOnce([
-          [
-            {
-              user_id: 'user-me-safe-aaaa-4aaa-aaaaaaaaaaaa',
-              email: 'me-safe@example.com',
-              username: null,
-              first_name: 'Safe',
-              last_name: 'User',
-              avatar_url: null,
-              session_id: 'sess-me-safe-bbbb-4bbb-bbbbbbbbbbbb',
-              client_id: '11111111-1111-4111-8111-111111111111',
-              client_slug: 'dobrunia-auth-web',
-              client_name: 'Dobrunia Auth Web',
-            },
-          ],
-        ]),
+        query: vi
+          .fn()
+          .mockResolvedValueOnce([[{ ok: 1 }]])
+          .mockResolvedValueOnce([
+            [
+              {
+                user_id: 'user-me-safe-aaaa-4aaa-aaaaaaaaaaaa',
+                email: 'me-safe@example.com',
+                username: null,
+                first_name: 'Safe',
+                last_name: 'User',
+                avatar_url: null,
+                session_id: 'sess-me-safe-bbbb-4bbb-bbbbbbbbbbbb',
+                client_id: '11111111-1111-4111-8111-111111111111',
+                client_slug: 'dobrunia-auth-web',
+                client_name: 'Dobrunia Auth Web',
+              },
+            ],
+          ]),
       };
       vi.mocked(getDatabasePool).mockResolvedValue({
         getConnection: vi.fn().mockResolvedValue(mockConnection),

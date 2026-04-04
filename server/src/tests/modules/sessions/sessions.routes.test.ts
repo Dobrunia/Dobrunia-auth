@@ -54,7 +54,10 @@ describe('GET /sessions', () => {
     };
     const mockConnection = {
       release: vi.fn(),
-      query: vi.fn().mockResolvedValueOnce([[row]]),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce([[{ ok: 1 }]])
+        .mockResolvedValueOnce([[row]]),
     };
     vi.mocked(getDatabasePool).mockResolvedValue({
       getConnection: vi.fn().mockResolvedValue(mockConnection),
@@ -76,6 +79,23 @@ describe('GET /sessions', () => {
     expect(res.status).toBe(401);
     expect(vi.mocked(getDatabasePool)).not.toHaveBeenCalled();
   });
+
+  it('возвращает 401 если access JWT привязан к неактивной/отозванной сессии', async () => {
+    const mockConnection = {
+      release: vi.fn(),
+      query: vi.fn().mockResolvedValueOnce([[]]),
+    };
+    vi.mocked(getDatabasePool).mockResolvedValue({
+      getConnection: vi.fn().mockResolvedValue(mockConnection),
+    } as never);
+
+    const res = await request(buildApp())
+      .get('/sessions')
+      .set('Authorization', `Bearer ${token()}`);
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.message).toBe('Invalid or expired access token');
+  });
 });
 
 describe('DELETE /sessions/:id', () => {
@@ -89,7 +109,10 @@ describe('DELETE /sessions/:id', () => {
       commit: vi.fn().mockResolvedValue(undefined),
       rollback: vi.fn().mockResolvedValue(undefined),
       release: vi.fn(),
-      query: vi.fn().mockResolvedValueOnce([[{ id: SESS_ID }]]),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce([[{ ok: 1 }]])
+        .mockResolvedValueOnce([[{ id: SESS_ID }]]),
       execute: vi.fn().mockResolvedValue([{ affectedRows: 1 }, []]),
     };
     vi.mocked(getDatabasePool).mockResolvedValue({
@@ -102,7 +125,9 @@ describe('DELETE /sessions/:id', () => {
 
     expect(res.status).toBe(204);
     expect(res.text).toBe('');
-    expect(mockConnection.execute).toHaveBeenCalled();
+    expect(mockConnection.execute).toHaveBeenCalledTimes(2);
+    expect(String(mockConnection.execute.mock.calls[0][0])).toContain('refresh_tokens');
+    expect(String(mockConnection.execute.mock.calls[1][0])).toContain('sessions');
     expect(mockConnection.commit).toHaveBeenCalled();
   });
 
@@ -112,7 +137,10 @@ describe('DELETE /sessions/:id', () => {
       commit: vi.fn().mockResolvedValue(undefined),
       rollback: vi.fn().mockResolvedValue(undefined),
       release: vi.fn(),
-      query: vi.fn().mockResolvedValueOnce([[]]),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce([[{ ok: 1 }]])
+        .mockResolvedValueOnce([[]]),
       execute: vi.fn(),
     };
     vi.mocked(getDatabasePool).mockResolvedValue({
@@ -152,6 +180,7 @@ describe('GET /clients/:id/sessions', () => {
       release: vi.fn(),
       query: vi
         .fn()
+        .mockResolvedValueOnce([[{ ok: 1 }]])
         .mockResolvedValueOnce([[{ id: '11111111-1111-4111-8111-111111111111', slug: 'dobrunia-auth-web', name: 'Dobrunia Auth Web' }]])
         .mockResolvedValueOnce([[row]]),
     };
@@ -171,7 +200,10 @@ describe('GET /clients/:id/sessions', () => {
   it('возвращает 404 если клиент не найден', async () => {
     const mockConnection = {
       release: vi.fn(),
-      query: vi.fn().mockResolvedValueOnce([[]]),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce([[{ ok: 1 }]])
+        .mockResolvedValueOnce([[]]),
     };
     vi.mocked(getDatabasePool).mockResolvedValue({
       getConnection: vi.fn().mockResolvedValue(mockConnection),

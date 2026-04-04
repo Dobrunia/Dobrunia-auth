@@ -1,23 +1,22 @@
 import type { Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { getBearerToken } from '../../../utils/request.utils';
 import { HttpError } from '../../../middleware/error.middleware';
 import { profilePatchBodySchema } from '../../../utils/schemas/profile.schema';
-import { verifyAccessToken } from '../token.utils';
+import type { AccessTokenPayload } from '../../../types/access-token.types';
 import { meService } from './me.service';
 import { profileService } from '../profile/profile.service';
 
-function requireAccessPayload(req: Request) {
-  const raw = getBearerToken(req);
-  if (!raw) {
+function accessPayload(req: Request): AccessTokenPayload {
+  const p = req.accessAuth;
+  if (!p) {
     throw new HttpError(401, 'Authorization Bearer token required');
   }
-  return verifyAccessToken(raw);
+  return p;
 }
 
 export const meController = {
   async getMe(req: Request, res: Response): Promise<void> {
-    const payload = requireAccessPayload(req);
+    const payload = accessPayload(req);
     const result = await meService.execute({
       userId: payload.sub,
       sessionId: payload.sid,
@@ -27,7 +26,7 @@ export const meController = {
   },
 
   async patchMe(req: Request, res: Response): Promise<void> {
-    const payload = requireAccessPayload(req);
+    const payload = accessPayload(req);
     let body;
     try {
       body = profilePatchBodySchema.parse(req.body);
@@ -45,7 +44,7 @@ export const meController = {
   },
 
   async deleteMe(req: Request, res: Response): Promise<void> {
-    const payload = requireAccessPayload(req);
+    const payload = accessPayload(req);
     await profileService.deleteAccount(payload.sub, payload.sid);
     res.status(204).send();
   },

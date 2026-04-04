@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { asyncHandler } from '../../utils/async-handler';
-import { requireAccessToken } from '../../middleware/access-auth.middleware';
+import { requireActiveAccessToken } from '../../middleware/access-auth.middleware';
 import { sessionsController } from '../sessions/sessions.controller';
 
 /**
@@ -10,6 +10,6 @@ export const clientsRouter = Router();
 
 clientsRouter.get(
   '/:id/sessions',
-  requireAccessToken,
+  asyncHandler(requireActiveAccessToken),
   asyncHandler(sessionsController.listMineForClient)
 );

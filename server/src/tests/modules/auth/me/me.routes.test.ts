@@ -46,7 +46,10 @@ describe('GET /auth/me', () => {
 
     const mockConnection = {
       release: vi.fn(),
-      query: vi.fn().mockResolvedValueOnce([[ME_ROW]]),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce([[{ ok: 1 }]])
+        .mockResolvedValueOnce([[ME_ROW]]),
     };
     vi.mocked(getDatabasePool).mockResolvedValue({
       getConnection: vi.fn().mockResolvedValue(mockConnection),
