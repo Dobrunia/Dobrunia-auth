@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
+import fs from 'node:fs';
+import path from 'node:path';
 import { JWT_DEFAULT_ACCESS_EXPIRES_SEC, JWT_DEFAULT_REFRESH_EXPIRES_DAYS } from '../constants/jwt.constants';
 import { envSchema } from './env.schema';
 import type { Env } from '../types/env.types';
 import { mergeCorsOriginsCsv } from '../utils/cors.utils';
-
-import path from 'node:path';
 
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: false });
@@ -26,6 +26,34 @@ function applyHostingEnvAliases(): void {
 }
 
 applyHostingEnvAliases();
+
+/** Unix-сокет только если файл есть (на Windows путь с хостинга даёт ENOENT → TCP по DATABASE_URL). */
+function resolveMysqlSocket(raw: string): string | null {
+  const t = raw.trim();
+  if (!t) return null;
+  try {
+    if (fs.existsSync(t)) return t;
+  } catch {
+    return null;
+  }
+  console.warn(`[config] MYSQL_SOCKET ignored (path missing): ${t}`);
+  return null;
+}
+
+const CORS_LOCAL_DEV_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+];
+
+/** В production только явные origin; в dev/test — плюс Vite по умолчанию (AUTH_WEB может указывать на прод-домен). */
+function withLocalDevCorsOrigins(merged: string[]): string[] {
+  if (process.env.NODE_ENV === 'production') return merged;
+  const set = new Set(merged);
+  for (const o of CORS_LOCAL_DEV_ORIGINS) set.add(o);
+  return Array.from(set);
+}
 
 function parsePositiveInt(raw: string, fallback: number): number {
   const n = parseInt(raw, 10);
@@ -56,7 +84,7 @@ const reflectHttpsOnly =
 export const config = {
   database: {
     url: env.DATABASE_URL,
-    socketPath: env.MYSQL_SOCKET.trim() || null,
+    socketPath: resolveMysqlSocket(env.MYSQL_SOCKET),
     host: env.DB_HOST,
     port: parseInt(env.DB_PORT, 10),
     user: env.DB_USER,
@@ -74,7 +102,7 @@ export const config = {
     host: env.HOST,
   },
   cors: {
-    origins: mergeCorsOriginsCsv(env.CORS_ORIGINS, env.AUTH_WEB_PUBLIC_URL),
+    origins: withLocalDevCorsOrigins(mergeCorsOriginsCsv(env.CORS_ORIGINS, env.AUTH_WEB_PUBLIC_URL)),
     reflectOrigin:
       env.CORS_REFLECT_ORIGIN === '1' || env.CORS_REFLECT_ORIGIN.toLowerCase() === 'true',
     reflectHttpsOnly,

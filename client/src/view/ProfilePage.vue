@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { toast } from 'vue-sonner';
 import { DbrButton, DbrCard, DbrInput, DbrLoader } from 'dobruniaui-vue';
 import { deleteAccount, fetchMe, patchProfile } from '@/api/auth-api';
 import { ApiError } from '@/api/http';
@@ -125,6 +126,7 @@ async function onSave() {
     firstName.value = me.user.firstName ?? '';
     lastName.value = me.user.lastName ?? '';
     avatarUrl.value = me.user.avatarUrl ?? '';
+    toast.success('Профиль сохранён');
   } catch (e) {
     saveError.value = e instanceof ApiError ? e.message : 'Не удалось сохранить';
   } finally {
