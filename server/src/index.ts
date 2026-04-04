@@ -40,9 +40,15 @@ async function bootstrap(): Promise<void> {
     // Middleware
     app.use(errorMiddleware);
 
-    // Start server
-    app.listen(config.app.port, () => {
+    Log.info('CORS config', {
+      origins: config.cors.origins,
+      reflect: config.cors.reflectOrigin,
+      authWebUrl: config.oauth.authWebPublicUrl || '(empty)',
+    });
+
+    app.listen(config.app.port, config.app.host, () => {
       Log.success('HTTP server listening', {
+        host: config.app.host,
         port: config.app.port,
         healthPath: '/health',
       });

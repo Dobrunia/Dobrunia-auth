@@ -4,7 +4,10 @@ import { envSchema } from './env.schema';
 import type { Env } from '../types/env.types';
 import { mergeCorsOriginsCsv } from '../utils/cors.utils';
 
+import path from 'node:path';
+
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: false });
 
 /**
  * Панели (na4u, ISPmanager и т.п.) часто задают DBUSER/DBPASS/DBNAME/DBHOST и APP_* —
