@@ -49,7 +49,7 @@ export function corsMiddleware(req: Request, res: Response, next: NextFunction):
   if (allowWildcard || allowSpecific) {
     if (allowWildcard) {
       applyCorsHeaders(res, '*', false);
-    } else {
+    } else if (typeof requestOrigin === 'string') {
       applyCorsHeaders(res, requestOrigin, true);
     }
   }
