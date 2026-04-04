@@ -6,6 +6,23 @@ import { mergeCorsOriginsCsv } from '../utils/cors.utils';
 
 dotenv.config();
 
+/**
+ * Панели (na4u, ISPmanager и т.п.) часто задают DBUSER/DBPASS/DBNAME/DBHOST и APP_* —
+ * подставляем в имена, которые читает Zod, только если «наших» переменных ещё нет.
+ */
+function applyHostingEnvAliases(): void {
+  const e = process.env;
+  if (e.DBUSER && !e.DB_USER) e.DB_USER = e.DBUSER;
+  if (e.DBPASS != null && e.DBPASS !== '' && !e.DB_PASSWORD) e.DB_PASSWORD = e.DBPASS;
+  if (e.DBNAME && !e.DB_NAME) e.DB_NAME = e.DBNAME;
+  if (e.DBHOST && !e.DB_HOST) e.DB_HOST = e.DBHOST;
+  if (e.DB_CONNECTION_STRING && !e.DATABASE_URL) e.DATABASE_URL = e.DB_CONNECTION_STRING;
+  if (e.APP_PORT && !e.PORT) e.PORT = e.APP_PORT;
+  if (e.APP_IP && !e.HOST) e.HOST = e.APP_IP;
+}
+
+applyHostingEnvAliases();
+
 function parsePositiveInt(raw: string, fallback: number): number {
   const n = parseInt(raw, 10);
   return Number.isFinite(n) && n > 0 ? n : fallback;
