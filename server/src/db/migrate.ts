@@ -29,11 +29,14 @@ export async function runMigrations(): Promise<void> {
   );
   const executedMigrations = new Set((rows as { name: string }[]).map((r) => r.name));
 
-  // Get migration files - use process.cwd() for tsx development
-  const migrationsDir = path.join(process.cwd(), 'src', 'db', 'migrations');
+  const candidates = [
+    path.join(__dirname, 'migrations'),
+    path.join(process.cwd(), 'src', 'db', 'migrations'),
+  ];
+  const migrationsDir = candidates.find((d) => fs.existsSync(d));
 
-  if (!fs.existsSync(migrationsDir)) {
-    console.log('No migrations directory found at:', migrationsDir);
+  if (!migrationsDir) {
+    console.log('No migrations directory found at:', candidates.join(', '));
     return;
   }
 
