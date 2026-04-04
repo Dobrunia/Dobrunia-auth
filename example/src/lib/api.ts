@@ -24,8 +24,15 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 export type MeResponse = {
-  user: { id: string; email: string };
-  session: { id: string; clientSlug: string; clientName: string };
+  user: {
+    id: string;
+    email: string;
+    username: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    avatarUrl: string | null;
+  };
+  session: { id: string; clientId: string; clientSlug: string; clientName: string };
 };
 
 export async function fetchMe(): Promise<MeResponse> {

@@ -11,7 +11,7 @@
 - **`CORS_REFLECT_ORIGIN=true`**: для **любого** запроса с заголовком `Origin`, прошедшего проверку (только схемы `http`/`https`, валидный hostname), сервер отвечает `Access-Control-Allow-Origin: <значение Origin>` и **`Access-Control-Allow-Credentials: true`**. Так браузерные SPA на **произвольных доменах** (витрины, партнёрские приложения) могут вызывать API с Bearer и `credentials: 'include'` (в т.ч. `POST /oauth/browser-session`). Риск: любой сайт может читать ответы **только к запросам, которые он сам инициирует**; секреты пользователя (токены) по-прежнему не утекают без участия вашего JS на странице атакующего.
 - **`CORS_REFLECT_HTTPS_ONLY`**: `true` / `false` / пусто. Пусто: в **`NODE_ENV=production`** при включённом reflect разрешены только **`https:`** и **http для `localhost` / `127.0.0.1`**; в dev — и `http`. Явно `false` — разрешить отражать и обычный `http` (понимая риски). Явно `true` — только https (+ localhost http).
 - Если в **`CORS_ORIGINS`** есть **`*`**, выставляется `Access-Control-Allow-Origin: *` **без** `Allow-Credentials` (ограничение спецификации).
-- Preflight **`OPTIONS`** — **`204`** и те же правила. Разрешены методы `GET`, `POST`, `DELETE` и заголовки `Authorization`, `Content-Type`.
+- Preflight **`OPTIONS`** — **`204`** и те же правила. Разрешены методы `GET`, `POST`, `PATCH`, `PUT`, `DELETE` и заголовки `Authorization`, `Content-Type`.
 - Режим **reflect** обрабатывается **раньше** проверки списка `CORS_ORIGINS`: при `CORS_REFLECT_ORIGIN=true` и валидном `Origin` список для этого запроса не ограничивает.
 
 ---
