@@ -35,6 +35,7 @@ const reflectHttpsOnly =
 export const config = {
   database: {
     url: env.DATABASE_URL,
+    socketPath: env.MYSQL_SOCKET.trim() || null,
     host: env.DB_HOST,
     port: parseInt(env.DB_PORT, 10),
     user: env.DB_USER,

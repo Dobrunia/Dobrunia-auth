@@ -11,6 +11,8 @@ export const envSchema = z.object({
   DB_USER: z.string().default('root'),
   DB_PASSWORD: z.string().default('password'),
   DB_NAME: z.string().default('dobrunia_auth'),
+  /** Пусто — только DATABASE_URL (TCP). На shared-хостинге часто: /run/mysqld/mysqld.sock */
+  MYSQL_SOCKET: z.string().default(''),
 
   JWT_ACCESS_SECRET: z.string().default('dev-access-secret-min-32-characters-long'),
   JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-min-32-characters-long'),
