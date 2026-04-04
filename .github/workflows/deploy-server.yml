@@ -7,7 +7,13 @@
 #   FTP_USERNAME
 #   FTP_PASSWORD
 #
-# FTPS: в шаге FTP добавь with.protocol: ftps (или ftps-legacy — см. README action).
+# FTPS: при необходимости раскомментируй protocol: ftps (или ftps-legacy — README action).
+#
+# «Timeout when trying to open data connection to … :39xxx» — passive FTP: раннер не
+# достучался до порта данных. Частые причины: (1) в ответе PASV фигурирует внутренний IP
+# хостинга — в панели ищи «внешний IP для FTP» / masquerade / «пассивный режим»;
+# (2) файрвол не пускает диапазон пассивных портов с интернета — открыть у провайдера;
+# (3) только FTPS — тогда protocol: ftps. Иначе: SFTP/SCP, git pull на сервере, self-hosted runner.
 #
 # На сервере после первого деплоя при необходимости один раз: npm ci --omit=dev
 # (CI не кладёт node_modules в архив; .env на хостинге не трогаем.)
@@ -147,4 +153,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./server-ftp/
+          log-level: verbose
+          # protocol: ftps
+          # port: 21
           # dangerous-clean-slate: true — не включать: снесёт .env и прочее вне артефакта
