@@ -12,20 +12,7 @@
 
       <div class="session-client-group__meta">
         <DbrChip variant="ghost" class="session-client-group__slug">{{ clientSlug }}</DbrChip>
-        <div class="session-client-group__stats">
-          <DbrCard variant="surface" class="session-client-group__stat dbru-surface">
-            <span class="dbru-text-xs dbru-text-muted">Всего сессий</span>
-            <strong class="dbru-text-main">{{ sessions.length }}</strong>
-          </DbrCard>
-          <DbrCard variant="surface" class="session-client-group__stat dbru-surface">
-            <span class="dbru-text-xs dbru-text-muted">Активных</span>
-            <strong class="dbru-text-main">{{ activeCount }}</strong>
-          </DbrCard>
-          <DbrCard variant="surface" class="session-client-group__stat dbru-surface">
-            <span class="dbru-text-xs dbru-text-muted">Завершенных</span>
-            <strong class="dbru-text-main">{{ revokedCount }}</strong>
-          </DbrCard>
-        </div>
+        <DbrChip variant="primary">{{ activeCount }} активных</DbrChip>
       </div>
     </div>
 
@@ -62,7 +49,6 @@ defineEmits<{
 }>();
 
 const activeCount = computed(() => props.sessions.filter((session) => session.status === 'active').length);
-const revokedCount = computed(() => props.sessions.filter((session) => session.status === 'revoked').length);
 </script>
 
 <style scoped>
@@ -121,32 +107,6 @@ const revokedCount = computed(() => props.sessions.filter((session) => session.s
   justify-self: flex-start;
 }
 
-.session-client-group__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--dbru-space-3);
-}
-
-.session-client-group__stat {
-  padding: var(--dbru-space-3) var(--dbru-space-4);
-  border-radius: var(--dbru-radius-md);
-  border-color: var(--dbru-color-border);
-  box-shadow: none;
-  background: color-mix(in srgb, var(--dbru-color-surface) 94%, var(--dbru-color-bg) 6%);
-}
-
-.session-client-group__stat span {
-  display: block;
-  margin-bottom: var(--dbru-space-1);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.session-client-group__stat strong {
-  font-size: var(--dbru-font-size-lg);
-  line-height: 1;
-}
-
 .session-client-group__list {
   list-style: none;
   margin: 0;
@@ -181,8 +141,5 @@ const revokedCount = computed(() => props.sessions.filter((session) => session.s
     padding: var(--dbru-space-3) var(--dbru-space-4) var(--dbru-space-4);
   }
 
-  .session-client-group__stats {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

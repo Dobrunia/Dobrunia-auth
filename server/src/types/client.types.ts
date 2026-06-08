@@ -17,11 +17,13 @@ export interface ClientRowWithOAuth {
 
 export interface Client {
   id: ClientId;
+  owner_user_id: string | null;
   name: string;
   slug: string;
   description: string | null;
   base_url: string | null;
   logo_url: string | null;
+  oauth_redirect_uris: string[] | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;

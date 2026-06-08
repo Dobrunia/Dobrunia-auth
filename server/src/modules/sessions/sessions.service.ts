@@ -5,6 +5,7 @@ import { findActiveClientByKey } from '../clients/client.repository';
 import { revokeAllActiveRefreshTokensForSession } from '../auth/refresh-token.repository';
 import {
   findSessionByIdForUser,
+  deleteFinishedSessions,
   listSessionsForUser,
   listSessionsForUserAndClient,
   revokeSessionById,
@@ -48,7 +49,7 @@ export const sessionsService = {
     const pool = await getDatabasePool();
     const connection = await pool.getConnection();
     try {
-      const rows = await listSessionsForUser(connection, userId);
+      const rows = await listSessionsForUser(connection, userId, SESSION_STATUS.ACTIVE);
       return { sessions: rows.map(mapRow) };
     } finally {
       connection.release();
@@ -63,7 +64,12 @@ export const sessionsService = {
       if (!client) {
         throw new HttpError(404, 'Client not found');
       }
-      const rows = await listSessionsForUserAndClient(connection, userId, client.id);
+      const rows = await listSessionsForUserAndClient(
+        connection,
+        userId,
+        client.id,
+        SESSION_STATUS.ACTIVE
+      );
       return { sessions: rows.map(mapRow) };
     } finally {
       connection.release();
@@ -108,6 +114,25 @@ export const sessionsService = {
         await connection.rollback();
       }
       throw e;
+    } finally {
+      connection.release();
+    }
+  },
+
+  async cleanupFinished(): Promise<number> {
+    const pool = await getDatabasePool();
+    const connection = await pool.getConnection();
+
+    try {
+      const deleted = await deleteFinishedSessions(
+        connection,
+        SESSION_STATUS.REVOKED,
+        SESSION_STATUS.EXPIRED
+      );
+      if (deleted > 0) {
+        Log.info('Finished sessions deleted', { deleted });
+      }
+      return deleted;
     } finally {
       connection.release();
     }

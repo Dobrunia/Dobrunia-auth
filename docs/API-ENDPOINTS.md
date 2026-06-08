@@ -143,10 +143,10 @@
 
 ### Flow
 
-- **Зачем:** дашборд «где я авторизован» — все сессии текущего пользователя по всем клиентам (браузеры, устройства, проекты).
+- **Зачем:** дашборд «где я авторизован» — активные сессии текущего пользователя по всем клиентам (браузеры, устройства, проекты).
 - **Заголовок:** `Authorization: Bearer <accessToken>` (как у `/auth/me`).
-- **Логика:** по `sub` из JWT выбираются все строки `sessions` этого пользователя, join `clients` для `slug` и `name`.
-- **Успех:** `200`, тело `{ "sessions": [ ... ] }`. Элементы: `id`, `status` (`active` / `revoked` / …), `clientId`, `clientSlug`, `clientName`, `ipAddress`, `userAgent`, `lastSeenAt`, `createdAt`, `revokedAt`, `revokeReason` (даты в ISO 8601, nullable — как в БД).
+- **Логика:** по `sub` из JWT выбираются только строки `sessions` со статусом `active`, join `clients` для `slug` и `name`. Завершенные записи не отображаются и позже физически удаляются cleanup job.
+- **Успех:** `200`, тело `{ "sessions": [ ... ] }`. Элементы: `id`, `status`, `clientId`, `clientSlug`, `clientName`, `ipAddress`, `userAgent`, `lastSeenAt`, `createdAt`, `revokedAt`, `revokeReason` (даты в ISO 8601, nullable — как в БД).
 - **Ошибки:** **`401`** при отсутствии/невалидном JWT (те же тексты, что у access-защищённых роутов).
 
 ---
@@ -158,9 +158,63 @@
 - **Зачем:** завершить одну конкретную сессию (одно устройство / один проект), не трогая остальные.
 - **Заголовок:** `Authorization: Bearer <accessToken>`.
 - **Параметр:** `id` — UUID сессии.
-- **Логика (транзакция):** сессия должна принадлежать пользователю из JWT (`user_id = sub`); иначе **`404`** `Session not found`. Иначе: отзыв **всех** ещё не отозванных `refresh_tokens` этой сессии (причина `session_revoked`), затем перевод сессии в `revoked` с той же причиной (как при logout, только для одной сессии). Уже отозванная сессия: refresh всё равно чистятся, `UPDATE` сессии может затронуть 0 строк — ответ всё равно успешный.
+- **Логика (транзакция):** сессия должна принадлежать пользователю из JWT (`user_id = sub`); иначе **`404`** `Session not found`. Иначе: отзыв **всех** ещё не отозванных `refresh_tokens` этой сессии (причина `session_revoked`), затем перевод сессии в `revoked`. После commit она сразу исчезает из `GET /sessions`; фоновая очистка физически удаляет запись и каскадно связанные refresh tokens и OAuth-коды.
 - **Успех:** **`204`**, пустое тело.
 - **Ошибки:** **`401`** JWT; **`404`** чужая или несуществующая сессия.
+
+---
+
+## Очистка завершенных сессий
+
+- Встроенная cleanup job запускается один раз при старте сервера и затем через каждые `SESSION_CLEANUP_INTERVAL_MINUTES` минут (по умолчанию `60`).
+- `SESSION_CLEANUP_ENABLED=false` отключает встроенный периодический запуск.
+- Команда `cd server && npm run sessions:cleanup` выполняет одну очистку вручную и подходит для системного cron.
+- Удаляются только статусы `revoked` и `expired`. Активные сессии job не затрагивает.
+- Благодаря внешним ключам `ON DELETE CASCADE` вместе с сессией удаляются связанные `refresh_tokens` и `oauth_authorization_codes`.
+
+Пример cron раз в час, если встроенная job отключена:
+
+```cron
+0 * * * * cd /path/to/Dobrunia-auth/server && npm run sessions:cleanup
+```
+
+---
+
+## `POST /clients`
+
+### Flow
+
+- **Зачем:** самостоятельно зарегистрировать приложение как OAuth-клиент без прямого доступа к БД.
+- **Заголовок:** `Authorization: Bearer <accessToken>`; токен должен быть привязан к активной сессии пользователя.
+- **Тело:** `name` (2–255 символов), уникальный `slug` (3–64 символа, lowercase Latin/digits, слова через `-`), обязательный массив `redirectUris` (1–10 точных URL). Опционально: `description`, `baseUrl`, `logoUrl`.
+- **URL-политика:** HTTPS обязателен; HTTP разрешён только для loopback-разработки (`localhost`, `127.0.0.1`, `[::1]`). URL с credentials или fragment запрещены. Дубликаты `redirectUris` отклоняются.
+- **Владение:** созданная строка `clients.owner_user_id` связывается с `sub` текущего пользователя. Системные клиенты из seed-миграции имеют `owner_user_id = NULL`.
+- **Успех:** **`201`**, тело `{ "client": { "id", "name", "slug", "description", "baseUrl", "logoUrl", "redirectUris", "isActive", "createdAt" } }`.
+- **Ошибки:** **`400`** при невалидном теле/URL; **`401`** без действующего access token; **`409`** `Client slug already exists`.
+- **Важно:** endpoint регистрирует публичный OAuth-клиент и не выдаёт client secret. Он также не изменяет статический `CORS_ORIGINS`.
+
+Пример:
+
+```json
+{
+  "name": "My Local App",
+  "slug": "my-local-app",
+  "baseUrl": "http://localhost:4173",
+  "redirectUris": ["http://localhost:4173/oauth/callback"]
+}
+```
+
+---
+
+## `GET /clients`
+
+### Flow
+
+- **Зачем:** получить приложения, зарегистрированные текущим пользователем, для кабинета разработчика.
+- **Заголовок:** `Authorization: Bearer <accessToken>`; сессия из токена должна оставаться активной.
+- **Владение:** сервер выбирает только строки, где `clients.owner_user_id = sub` из access token. Системные и чужие клиенты не возвращаются.
+- **Успех:** **`200`**, тело `{ "clients": [ ... ] }`. Каждый элемент содержит `id`, `name`, `slug`, `description`, `baseUrl`, `logoUrl`, `redirectUris`, `isActive`, `createdAt`.
+- **Ошибки:** **`401`** без действующего access token.
 
 ---
 
@@ -229,7 +283,7 @@
 
 ### Данные в БД
 
-- У клиента поле **`oauth_redirect_uris`** (JSON-массив строк) задаётся миграциями/админкой; без него authorize вернёт ошибку «OAuth не настроен».
+- У клиента поле **`oauth_redirect_uris`** (JSON-массив строк) задаётся через `POST /clients`, миграцию или административный инструмент; без него authorize вернёт ошибку «OAuth не настроен».
 - Коды хранятся в **`oauth_authorization_codes`** (в БД только **SHA-256** от `code`, как у refresh).
 
 ---

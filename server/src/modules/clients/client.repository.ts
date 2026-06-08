@@ -1,5 +1,46 @@
 import type { PoolConnection } from 'mysql2/promise';
+import type {
+  RegisteredClientDto,
+  RegisterClientParams,
+} from '../../types/client-registration.types';
 import type { ClientRow, ClientRowWithOAuth } from '../../types/client.types';
+
+interface OwnedClientRow {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  base_url: string | null;
+  logo_url: string | null;
+  oauth_redirect_uris: unknown;
+  is_active: number | boolean;
+  created_at: Date | string;
+}
+
+export async function insertClient(
+  connection: PoolConnection,
+  params: RegisterClientParams
+): Promise<void> {
+  await connection.execute(
+    `INSERT INTO clients (
+       id, owner_user_id, name, slug, description, base_url, logo_url,
+       is_active, oauth_redirect_uris, created_at, updated_at
+     )
+     VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+    [
+      params.id,
+      params.ownerUserId,
+      params.name,
+      params.slug,
+      params.description,
+      params.baseUrl,
+      params.logoUrl,
+      JSON.stringify(params.redirectUris),
+      params.createdAt,
+      params.createdAt,
+    ]
+  );
+}
 
 /**
  * Resolve by UUID or slug (same string can match either column).
@@ -46,6 +87,35 @@ function parseOauthRedirectUris(raw: unknown): string[] {
     }
   }
   return [];
+}
+
+export async function listClientsByOwner(
+  connection: PoolConnection,
+  ownerUserId: string
+): Promise<RegisteredClientDto[]> {
+  const [rows] = await connection.query(
+    `SELECT id, name, slug, description, base_url, logo_url,
+            oauth_redirect_uris, is_active, created_at
+     FROM clients
+     WHERE owner_user_id = ?
+     ORDER BY created_at DESC`,
+    [ownerUserId]
+  );
+
+  return (rows as OwnedClientRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    baseUrl: row.base_url,
+    logoUrl: row.logo_url,
+    redirectUris: parseOauthRedirectUris(row.oauth_redirect_uris),
+    isActive: Boolean(row.is_active),
+    createdAt:
+      row.created_at instanceof Date
+        ? row.created_at.toISOString()
+        : new Date(row.created_at).toISOString(),
+  }));
 }
 
 /**

@@ -16,6 +16,11 @@ const router = createRouter({
       component: () => import('@/view/ProfilePage.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: ROUTES.CLIENTS,
+      component: () => import('@/view/ClientsPage.vue'),
+      meta: { requiresAuth: true },
+    },
     { path: ROUTES.ACCOUNT, component: () => import('@/view/AccountSelectPage.vue') },
     { path: ROUTES.OAUTH_BRIDGE, component: () => import('@/view/OAuthBridgePage.vue') },
     { path: ROUTES.LOGIN, component: () => import('@/view/LoginPage.vue') },

@@ -2,11 +2,18 @@
   <div class="auth-page auth-page--wide">
     <div class="profile-head">
       <h1 class="dbru-text-lg">Мой аккаунт</h1>
-      <RouterLink v-slot="{ navigate }" :to="ROUTES.HOME" custom>
-        <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
-          Мои сессии
-        </DbrButton>
-      </RouterLink>
+      <div class="profile-head__actions">
+        <RouterLink v-slot="{ navigate }" :to="ROUTES.CLIENTS" custom>
+          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+            Мои приложения
+          </DbrButton>
+        </RouterLink>
+        <RouterLink v-slot="{ navigate }" :to="ROUTES.HOME" custom>
+          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+            Мои сессии
+          </DbrButton>
+        </RouterLink>
+      </div>
     </div>
 
     <p v-if="loadError" class="dbru-text-sm" style="color: var(--dbru-color-error)">{{ loadError }}</p>
@@ -170,6 +177,11 @@ async function onDeleteAccount() {
   justify-content: space-between;
   gap: var(--dbru-space-3);
   margin-bottom: var(--dbru-space-3);
+}
+.profile-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dbru-space-2);
 }
 .profile-loading {
   display: flex;

@@ -1,4 +1,4 @@
-import type { PoolConnection } from 'mysql2/promise';
+import type { PoolConnection, ResultSetHeader } from 'mysql2/promise';
 import type { SessionListRow } from '../../types/session-list.types';
 
 export async function isSessionActiveForUser(
@@ -56,7 +56,8 @@ export async function revokeSessionById(
  */
 export async function listSessionsForUser(
   connection: PoolConnection,
-  userId: string
+  userId: string,
+  activeStatus: string
 ): Promise<SessionListRow[]> {
   const [rows] = await connection.query(
     `SELECT
@@ -74,9 +75,9 @@ export async function listSessionsForUser(
        c.name AS client_name
      FROM sessions s
      INNER JOIN clients c ON c.id = s.client_id
-     WHERE s.user_id = ?
+     WHERE s.user_id = ? AND s.status = ?
      ORDER BY (s.last_seen_at IS NULL), s.last_seen_at DESC, s.created_at DESC`,
-    [userId]
+    [userId, activeStatus]
   );
   return rows as SessionListRow[];
 }
@@ -84,7 +85,8 @@ export async function listSessionsForUser(
 export async function listSessionsForUserAndClient(
   connection: PoolConnection,
   userId: string,
-  clientId: string
+  clientId: string,
+  activeStatus: string
 ): Promise<SessionListRow[]> {
   const [rows] = await connection.query(
     `SELECT
@@ -102,11 +104,23 @@ export async function listSessionsForUserAndClient(
        c.name AS client_name
      FROM sessions s
      INNER JOIN clients c ON c.id = s.client_id
-     WHERE s.user_id = ? AND s.client_id = ?
+     WHERE s.user_id = ? AND s.client_id = ? AND s.status = ?
      ORDER BY (s.last_seen_at IS NULL), s.last_seen_at DESC, s.created_at DESC`,
-    [userId, clientId]
+    [userId, clientId, activeStatus]
   );
   return rows as SessionListRow[];
+}
+
+export async function deleteFinishedSessions(
+  connection: PoolConnection,
+  revokedStatus: string,
+  expiredStatus: string
+): Promise<number> {
+  const [result] = await connection.execute<ResultSetHeader>(
+    'DELETE FROM sessions WHERE status IN (?, ?)',
+    [revokedStatus, expiredStatus]
+  );
+  return result.affectedRows;
 }
 
 /** Сессия принадлежит пользователю (любой статус). */

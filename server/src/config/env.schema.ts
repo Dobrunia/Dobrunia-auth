@@ -19,6 +19,11 @@ export const envSchema = z.object({
   ACCESS_TOKEN_EXPIRES_SEC: z.string().default(String(JWT_DEFAULT_ACCESS_EXPIRES_SEC)),
   REFRESH_TOKEN_EXPIRES_DAYS: z.string().default(String(JWT_DEFAULT_REFRESH_EXPIRES_DAYS)),
 
+  /** Автоматически удалять завершенные сессии и каскадно связанные с ними данные. */
+  SESSION_CLEANUP_ENABLED: z.string().default('true'),
+  /** Интервал фоновой очистки в минутах. */
+  SESSION_CLEANUP_INTERVAL_MINUTES: z.string().default('60'),
+
   PORT: z.string().default('3000'),
   HOST: z.string().default('localhost'),
 

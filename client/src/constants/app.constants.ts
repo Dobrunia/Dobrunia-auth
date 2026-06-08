@@ -18,6 +18,8 @@ export const ROUTES = {
   ACCOUNT: '/account',
   /** Профиль: имя, ник, аватар, удаление аккаунта */
   PROFILE: '/profile',
+  /** Приложения, зарегистрированные текущим пользователем */
+  CLIENTS: '/clients',
   /** Старый путь; редирект на HOME */
   SESSIONS: '/sessions',
   OAUTH_CALLBACK: '/oauth/callback',

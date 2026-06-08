@@ -1,16 +1,17 @@
 {
   "name": "dobrunia-auth-server",
-  "version": "1.0.9",
+  "version": "1.1.1",
   "description": "Dobrunia OAuth / SSO Service - Server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && node -e \"require('fs').cpSync('src/db/migrations','dist/db/migrations',{recursive:true})\"",
+    "build": "tsc && node -e \"const fs=require('fs'),p=require('path'),s='src/db/migrations',d='dist/db/migrations';fs.mkdirSync(d,{recursive:true});for(const f of fs.readdirSync(s)){if(f.endsWith('.sql'))fs.copyFileSync(p.join(s,f),p.join(d,f))}\"",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "tsx src/db/migrate-cli.ts",
-    "db:migrate:rollback": "tsx src/db/migrate-cli.ts --rollback"
+    "db:migrate:rollback": "tsx src/db/migrate-cli.ts --rollback",
+    "sessions:cleanup": "tsx src/jobs/session-cleanup.cli.ts"
   },
   "dependencies": {
     "argon2": "^0.44.0",

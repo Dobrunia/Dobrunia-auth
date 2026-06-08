@@ -72,6 +72,10 @@ describe('GET /sessions', () => {
     expect(res.body.sessions[0].id).toBe(SESS_ID);
     expect(res.body.sessions[0].clientSlug).toBe('dobrunia-auth-web');
     expect(res.body.sessions[0].lastSeenAt).toBe('2026-01-01T12:00:00.000Z');
+    expect(mockConnection.query).toHaveBeenLastCalledWith(
+      expect.stringContaining('s.status = ?'),
+      [USER_ID, 'active']
+    );
   });
 
   it('возвращает 401 без Authorization', async () => {
@@ -195,6 +199,14 @@ describe('GET /clients/:id/sessions', () => {
     expect(res.status).toBe(200);
     expect(res.body.sessions).toHaveLength(1);
     expect(res.body.sessions[0].clientId).toBe('11111111-1111-4111-8111-111111111111');
+    expect(mockConnection.query).toHaveBeenLastCalledWith(
+      expect.stringContaining('s.status = ?'),
+      [
+        USER_ID,
+        '11111111-1111-4111-8111-111111111111',
+        'active',
+      ]
+    );
   });
 
   it('возвращает 404 если клиент не найден', async () => {

@@ -10,6 +10,7 @@ import { clientsRouter } from './modules/clients/clients.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { Log } from './utils/log';
+import { startSessionCleanupJob } from './jobs/session-cleanup.job';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -37,6 +38,8 @@ async function bootstrap(): Promise<void> {
     await runMigrations();
     Log.info('Migrations completed');
 
+    const stopSessionCleanupJob = startSessionCleanupJob();
+
     // Middleware
     app.use(errorMiddleware);
 
@@ -57,12 +60,14 @@ async function bootstrap(): Promise<void> {
     // Graceful shutdown
     process.on('SIGTERM', async () => {
       Log.warn('SIGTERM received, shutting down');
+      stopSessionCleanupJob();
       await closeDatabasePool();
       process.exit(0);
     });
 
     process.on('SIGINT', async () => {
       Log.warn('SIGINT received, shutting down');
+      stopSessionCleanupJob();
       await closeDatabasePool();
       process.exit(0);
     });

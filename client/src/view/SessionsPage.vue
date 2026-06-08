@@ -33,6 +33,11 @@
       </div>
 
       <div class="sessions-hero__actions">
+        <RouterLink v-slot="{ navigate }" :to="ROUTES.CLIENTS" custom>
+          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+            Мои приложения
+          </DbrButton>
+        </RouterLink>
         <RouterLink v-slot="{ navigate }" :to="ROUTES.PROFILE" custom>
           <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
             Мой аккаунт
@@ -89,6 +94,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { toast } from 'vue-sonner';
 import { DbrButton, DbrCard, DbrLoader, DbrSkeleton } from 'dobruniaui-vue';
 import { deleteSession, fetchMe, listSessions, logout } from '@/api/auth-api';
 import { ApiError } from '@/api/http';
@@ -164,7 +170,7 @@ async function load() {
   try {
     const [me, response] = await Promise.all([fetchMe(), listSessions()]);
     currentSessionId.value = me.session.id;
-    sessions.value = response.sessions;
+    sessions.value = response.sessions.filter((session) => session.status === 'active');
   } catch (error) {
     loadError.value = error instanceof ApiError ? error.message : 'Ошибка загрузки';
     currentSessionId.value = null;
@@ -178,9 +184,10 @@ async function onRevoke(id: string) {
 
   try {
     await deleteSession(id);
-    await load();
+    sessions.value = sessions.value.filter((session) => session.id !== id);
+    toast.success('Сессия завершена');
   } catch (error) {
-    loadError.value = error instanceof ApiError ? error.message : 'Не удалось завершить сессию';
+    toast.error(error instanceof ApiError ? error.message : 'Не удалось завершить сессию');
   } finally {
     deletingId.value = null;
   }

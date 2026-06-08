@@ -60,6 +60,13 @@ function parsePositiveInt(raw: string, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+function parseBoolean(raw: string, fallback: boolean): boolean {
+  const normalized = raw.trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0') return false;
+  return fallback;
+}
+
 function loadEnv(): Env {
   const parsed = envSchema.safeParse(process.env);
 
@@ -96,6 +103,10 @@ export const config = {
     refreshSecret: env.JWT_REFRESH_SECRET,
     accessExpiresSec: parsePositiveInt(env.ACCESS_TOKEN_EXPIRES_SEC, JWT_DEFAULT_ACCESS_EXPIRES_SEC),
     refreshExpiresDays: parsePositiveInt(env.REFRESH_TOKEN_EXPIRES_DAYS, JWT_DEFAULT_REFRESH_EXPIRES_DAYS),
+  },
+  sessionCleanup: {
+    enabled: parseBoolean(env.SESSION_CLEANUP_ENABLED, true),
+    intervalMinutes: parsePositiveInt(env.SESSION_CLEANUP_INTERVAL_MINUTES, 60),
   },
   app: {
     port: parsePositiveInt(env.PORT, 3000),
