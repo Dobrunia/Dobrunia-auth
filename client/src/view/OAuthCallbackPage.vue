@@ -1,17 +1,17 @@
 <template>
   <div class="auth-page auth-page--oauth">
-    <h1 class="dbru-text-lg">OAuth</h1>
+    <h1 class="dbru-font-size-lg">OAuth</h1>
     <div v-if="status === 'loading'" class="oauth-state">
       <DbrLoader size="md" />
-      <p class="dbru-text-sm dbru-text-muted">Обмен кода на токены…</p>
+      <p class="dbru-font-size-sm dbru-font-color-muted">Обмен кода на токены…</p>
     </div>
-    <p v-else-if="status === 'ok'" class="dbru-text-sm" style="color: var(--dbru-color-success)">
+    <p v-else-if="status === 'ok'" class="dbru-font-size-sm" style="color: var(--dbru-color-success)">
       Готово. Перенаправление…
     </p>
     <div v-else>
-      <p class="dbru-text-sm" style="color: var(--dbru-color-error)">{{ message }}</p>
+      <p class="dbru-font-size-sm" style="color: var(--dbru-color-error)">{{ message }}</p>
       <RouterLink v-slot="{ navigate }" :to="ROUTES.HOME" custom>
-        <DbrButton variant="ghost" native-type="button" class="dbru-focusable" style="margin-top: var(--dbru-space-3)" @click="navigate">
+        <DbrButton variant="ghost" native-type="button" class="dbru-focus-visible" style="margin-top: var(--dbru-space-3)" @click="navigate">
           На главную
         </DbrButton>
       </RouterLink>

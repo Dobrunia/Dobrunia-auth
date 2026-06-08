@@ -189,7 +189,7 @@
 - **Тело:** `name` (2–255 символов), уникальный `slug` (3–64 символа, lowercase Latin/digits, слова через `-`), обязательный массив `redirectUris` (1–10 точных URL). Опционально: `description`, `baseUrl`, `logoUrl`.
 - **URL-политика:** HTTPS обязателен; HTTP разрешён только для loopback-разработки (`localhost`, `127.0.0.1`, `[::1]`). URL с credentials или fragment запрещены. Дубликаты `redirectUris` отклоняются.
 - **Владение:** созданная строка `clients.owner_user_id` связывается с `sub` текущего пользователя. Системные клиенты из seed-миграции имеют `owner_user_id = NULL`.
-- **Успех:** **`201`**, тело `{ "client": { "id", "name", "slug", "description", "baseUrl", "logoUrl", "redirectUris", "isActive", "createdAt" } }`.
+- **Успех:** **`201`**, тело `{ "client": { "id", "name", "slug", "description", "baseUrl", "logoUrl", "redirectUris", "isActive", "activeSessionCount", "activeUserCount", "createdAt" } }`. У нового приложения оба счётчика равны `0`.
 - **Ошибки:** **`400`** при невалидном теле/URL; **`401`** без действующего access token; **`409`** `Client slug already exists`.
 - **Важно:** endpoint регистрирует публичный OAuth-клиент и не выдаёт client secret. Он также не изменяет статический `CORS_ORIGINS`.
 
@@ -213,8 +213,59 @@
 - **Зачем:** получить приложения, зарегистрированные текущим пользователем, для кабинета разработчика.
 - **Заголовок:** `Authorization: Bearer <accessToken>`; сессия из токена должна оставаться активной.
 - **Владение:** сервер выбирает только строки, где `clients.owner_user_id = sub` из access token. Системные и чужие клиенты не возвращаются.
-- **Успех:** **`200`**, тело `{ "clients": [ ... ] }`. Каждый элемент содержит `id`, `name`, `slug`, `description`, `baseUrl`, `logoUrl`, `redirectUris`, `isActive`, `createdAt`.
+- **Успех:** **`200`**, тело `{ "clients": [ ... ] }`. Каждый элемент содержит `id`, `name`, `slug`, `description`, `baseUrl`, `logoUrl`, `redirectUris`, `isActive`, `activeSessionCount`, `activeUserCount`, `createdAt`. Считаются только активные сессии; пользователи считаются уникально.
 - **Ошибки:** **`401`** без действующего access token.
+
+---
+
+## `PATCH /clients/:id`
+
+### Flow
+
+- **Зачем:** изменить принадлежащее текущему пользователю приложение.
+- **Заголовок:** `Authorization: Bearer <accessToken>`.
+- **Параметр:** `id` — UUID клиента из `POST/GET /clients`.
+- **Тело:** хотя бы одно поле из `name`, `slug`, `description`, `baseUrl`, `logoUrl`, `redirectUris`, `isActive`. Правила slug и URL совпадают с регистрацией. Пустая строка очищает `baseUrl`, `logoUrl` или `description`.
+- **Безопасность:** `id`, `ownerUserId`, счётчики и другие внутренние поля менять нельзя. Обновление всегда ограничено `owner_user_id = sub`.
+- **Успех:** **`200`**, `{ "client": { ... } }` с актуальными полями и счётчиками.
+- **Ошибки:** **`400`** невалидное/пустое тело; **`401`** access token; **`404`** чужой или отсутствующий клиент; **`409`** занятый slug.
+
+---
+
+## `DELETE /clients/:id`
+
+### Flow
+
+- **Зачем:** полностью удалить своё приложение.
+- **Заголовок:** `Authorization: Bearer <accessToken>`.
+- **Безопасность:** удаление выполняется только по паре `id + owner_user_id`.
+- **Последствия:** MySQL каскадно удаляет сессии приложения, их refresh tokens и OAuth authorization codes. Операция необратима; постоянный `client_id` перестаёт работать сразу.
+- **Успех:** **`204`**, пустое тело.
+- **Ошибки:** **`401`** access token; **`404`** чужой или отсутствующий клиент.
+
+---
+
+## `GET /clients/:id/management/sessions`
+
+### Flow
+
+- **Зачем:** владельцу приложения увидеть его активные пользовательские сессии.
+- **Заголовок:** `Authorization: Bearer <accessToken>`.
+- **Владение:** сначала проверяется `clients.id = :id AND owner_user_id = sub`. Чужое приложение возвращает **`404`**.
+- **Успех:** **`200`**, `{ "sessions": [ ... ] }`. Элемент содержит `id`, `userId`, `userEmail`, `userDisplayName`, `ipAddress`, `userAgent`, `lastSeenAt`, `createdAt`. Пароли, токены и внутренние auth-поля не возвращаются.
+- **Ошибки:** **`401`** access token; **`404`** чужой или отсутствующий клиент.
+
+---
+
+## `DELETE /clients/:id/management/sessions/:sessionId`
+
+### Flow
+
+- **Зачем:** владельцу приложения принудительно завершить одну активную пользовательскую сессию.
+- **Проверки:** приложение должно принадлежать текущему пользователю; сессия должна быть активной и относиться именно к этому приложению. Для чужого приложения и неподходящей сессии возвращается одинаковый **`404`** `Session not found`.
+- **Логика:** в транзакции отзываются активные refresh tokens, затем сессия получает статус `revoked` и причину `client_owner_revoked`. Cleanup job позже удалит её физически.
+- **Успех:** **`204`**, пустое тело.
+- **Ошибки:** **`401`** access token; **`404`** чужой клиент, чужая, завершённая или отсутствующая сессия.
 
 ---
 
@@ -240,7 +291,9 @@
 - **Query (опционально):** `state` — произвольная строка клиента (CSRF); возвращается в редиректе на `redirect_uri` без изменений.
 - **Проверки:** клиент активен; для клиента задан непустой JSON-массив разрешённых `redirect_uri`; переданный `redirect_uri` **точно** совпадает с одним из них.
 - **Уже вошёл:** если есть httpOnly-кука `dobrunia_oauth` (JWT после успешного `POST /oauth/authorize` или `POST /oauth/browser-session`) и сессия в БД всё ещё `active` для этого же `client_id`, выдаётся одноразовый `code` и выполняется **302** на `redirect_uri?code=...&state=...` (параметры добавляются к URL callback).
-- **Иначе, если задан `AUTH_WEB_PUBLIC_URL`:** **302** на SPA `{AUTH_WEB_PUBLIC_URL}/oauth-bridge?return_url=<полный URL этого GET /oauth/authorize>`. Дальше пользователь входит на том же UI, что и основной auth-web (`/login`, `/register`), после чего SPA вызывает `POST /oauth/browser-session` и возвращает браузер на `return_url` — с кукой уже выдаётся `code`.
+- **Иначе, если задан `AUTH_WEB_PUBLIC_URL`:** **302** на гарантированно существующий корень SPA `{AUTH_WEB_PUBLIC_URL}/?oauth_bridge=1&return_url=<полный URL этого GET /oauth/authorize>`. Vue Router внутренне открывает `/oauth-bridge`. Такой bootstrap не зависит от nginx history fallback. Если в SPA уже есть действующая сессия пользователя, bridge создаёт сессию целевого клиента без повторного ввода пароля.
+- **Передача сессии:** Auth Web отправляет скрытую top-level форму на `POST /oauth/browser-session`. API ставит cookie в first-party контексте и отвечает `303` обратно на проверенный `return_url`; flow не зависит от cross-site `fetch` и разрешения third-party cookies.
+- **Защита от зависания:** API-запросы Auth Web имеют таймаут. Перед handoff добавляется служебная отметка; если cookie всё же не сохранилась и API снова вернул пользователя на bridge, UI показывает конечную ошибку вместо повторного цикла.
 - **Иначе (переменная пуста):** **200** `text/html` — встроенная страница входа (форма `POST /oauth/authorize` с hidden + email/password).
 - **Ошибки конфигурации / параметров:** **400** HTML-страница с пояснением (нельзя безопасно редиректить на неизвестный `redirect_uri`).
 
@@ -263,11 +316,12 @@
 
 ### Flow
 
-- **Зачем:** после логина на SPA (JSON `POST /auth/login` или register) выставить ту же httpOnly-куку `dobrunia_oauth`, что и после hosted `POST /oauth/authorize`, чтобы следующий заход на `GET /oauth/authorize` сразу выдал `code`.
-- **Заголовок:** `Authorization: Bearer <accessToken>` — валидный access JWT; сессия в БД должна быть `active` (та же проверка, что у `GET /auth/me`).
-- **CORS:** запрос с другого origin — только из списка `CORS_ORIGINS`, с **`credentials: 'include'`** на клиенте.
-- **Успех:** **`204`**, заголовок **`Set-Cookie`** (кука браузерной OAuth-сессии, параметры как у успешного `POST /oauth/authorize`).
-- **Ошибки:** **`401`** (нет Bearer, невалидный JWT, сессия не активна).
+- **Зачем:** подтвердить уже выполненный вход в Auth Web для конкретного OAuth-клиента и выставить httpOnly-куку `dobrunia_oauth`, чтобы следующий заход на `GET /oauth/authorize` сразу выдал `code`.
+- **Основной browser flow:** `application/x-www-form-urlencoded` с `accessToken`, `clientId` и `returnUrl`. `returnUrl` разрешён только на origin текущего API, только путь `/oauth/authorize`, только `response_type=code`, и его `client_id` должен совпадать с полем `clientId`.
+- **API-вариант:** `Authorization: Bearer <accessToken>` и JSON `{ "clientId": "<UUID или slug целевого клиента>" }`. Он нужен только для доверенного клиента, который сам управляет cookies.
+- **Логика:** если access token уже относится к целевому клиенту, используется текущая сессия. Если пользователь вошёл через другой клиент, сервер создаёт отдельную активную сессию целевого приложения без повторного запроса пароля и помещает её id в OAuth cookie.
+- **Успех browser flow:** **`303`** на проверенный `returnUrl` и заголовок **`Set-Cookie`**. Для API-варианта — **`204`** и тот же `Set-Cookie`.
+- **Ошибки:** **`400`** (невалидные поля/`returnUrl`, клиент неизвестен или отключён); **`401`** (нет access token, невалидный JWT, исходная сессия не активна).
 
 ---
 

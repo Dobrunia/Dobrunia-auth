@@ -32,6 +32,14 @@ const router = createRouter({
 router.beforeEach((to) => {
   const authed = Boolean(tokenStorage.getAccess());
 
+  if (to.path === ROUTES.HOME && to.query.oauth_bridge === '1') {
+    const raw = typeof to.query.return_url === 'string' ? to.query.return_url : '';
+    return {
+      path: ROUTES.OAUTH_BRIDGE,
+      query: raw ? { return_url: raw } : {},
+    };
+  }
+
   if (to.meta.requiresAuth && !authed) {
     return {
       path: ROUTES.LOGIN,
@@ -47,7 +55,12 @@ router.beforeEach((to) => {
     return ROUTES.HOME;
   }
 
-  if (authed && to.path === ROUTES.LOGIN && to.query.oauth === '1') {
+  if (
+    authed &&
+    to.path === ROUTES.LOGIN &&
+    to.query.oauth === '1' &&
+    to.query.reauth !== '1'
+  ) {
     const raw = typeof to.query.return_url === 'string' ? to.query.return_url : '';
     if (raw) {
       return { path: ROUTES.OAUTH_BRIDGE, query: { return_url: raw } };

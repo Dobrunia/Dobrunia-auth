@@ -1,11 +1,11 @@
 <template>
   <header class="app-health-header dbru-surface" aria-live="polite">
     <span
-      class="dbru-text-sm app-health-header__label"
+      class="dbru-font-size-sm app-health-header__label"
       :class="{
         'app-health-header__label--ok': status === 'ok',
         'app-health-header__label--error': status === 'error',
-        'dbru-text-muted': status === 'loading',
+        'dbru-font-color-muted': status === 'loading',
       }"
     >
       {{ label }}

@@ -22,6 +22,7 @@ import { buildAbsoluteRequestUrl, getClientIp, getUserAgent } from '../../../uti
 import { signOauthBrowserCookie, verifyOauthBrowserCookie } from '../oauth-browser.jwt';
 import { insertOAuthAuthorizationCode } from '../oauth-code.repository';
 import { Log } from '../../../utils/log';
+import { buildAuthWebBridgeUrl } from './authorize-url.utils';
 
 function firstQueryString(v: unknown): string | undefined {
   if (typeof v === 'string') {
@@ -190,9 +191,10 @@ export const oauthAuthorizeService = {
       const authWeb = config.oauth.authWebPublicUrl;
       if (authWeb.length > 0) {
         const returnAuthorize = buildAbsoluteRequestUrl(req);
-        const bridge = new URL('/oauth-bridge', `${authWeb}/`);
-        bridge.searchParams.set('return_url', returnAuthorize);
-        return { kind: 'redirect', location: bridge.toString() };
+        return {
+          kind: 'redirect',
+          location: buildAuthWebBridgeUrl(authWeb, returnAuthorize),
+        };
       }
 
       return {

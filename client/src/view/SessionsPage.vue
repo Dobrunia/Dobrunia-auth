@@ -3,9 +3,9 @@
     <DbrCard as="section" variant="bordered" class="dbru-surface sessions-hero">
       <div class="sessions-hero__content">
         <div class="sessions-hero__copy">
-          <p class="sessions-hero__eyebrow dbru-text-xs dbru-text-muted">Безопасность аккаунта</p>
-          <h1 class="sessions-hero__title dbru-text-main">Сессии и устройства</h1>
-          <p class="sessions-hero__text dbru-text-base dbru-text-muted">
+          <p class="sessions-hero__eyebrow dbru-font-size-xs dbru-font-color-muted">Безопасность аккаунта</p>
+          <h1 class="sessions-hero__title dbru-font-color-base">Сессии и устройства</h1>
+          <p class="sessions-hero__text dbru-font-size-base dbru-font-color-muted">
             Контролируйте все входы в Dobrunia Auth по разным приложениям. Экран ниже показывает, с какого устройства
             выполнен вход, какой браузер и ОС использовались, когда сессия была создана и когда проявляла активность.
           </p>
@@ -13,33 +13,33 @@
 
         <div class="sessions-hero__stats">
           <DbrCard variant="surface" class="sessions-stat dbru-surface">
-            <span class="dbru-text-xs dbru-text-muted">Приложений</span>
-            <strong class="dbru-text-main">{{ sessionGroups.length }}</strong>
-            <small class="dbru-text-sm dbru-text-muted">Группы клиентов, в которых есть сохраненные сессии.</small>
+            <span class="dbru-font-size-xs dbru-font-color-muted">Приложений</span>
+            <strong class="dbru-font-color-base">{{ sessionGroups.length }}</strong>
+            <small class="dbru-font-size-sm dbru-font-color-muted">Группы клиентов, в которых есть сохраненные сессии.</small>
           </DbrCard>
 
           <DbrCard variant="surface" class="sessions-stat dbru-surface">
-            <span class="dbru-text-xs dbru-text-muted">Активных сессий</span>
-            <strong class="dbru-text-main">{{ activeSessionsCount }}</strong>
-            <small class="dbru-text-sm dbru-text-muted">Действующие входы, которые можно завершить вручную.</small>
+            <span class="dbru-font-size-xs dbru-font-color-muted">Активных сессий</span>
+            <strong class="dbru-font-color-base">{{ activeSessionsCount }}</strong>
+            <small class="dbru-font-size-sm dbru-font-color-muted">Действующие входы, которые можно завершить вручную.</small>
           </DbrCard>
 
           <DbrCard variant="surface" class="sessions-stat dbru-surface">
-            <span class="dbru-text-xs dbru-text-muted">Текущий клиент</span>
-            <strong class="dbru-text-main">{{ currentClientName }}</strong>
-            <small class="dbru-text-sm dbru-text-muted">Сессия этой вкладки выделена отдельным акцентом в списке.</small>
+            <span class="dbru-font-size-xs dbru-font-color-muted">Текущий клиент</span>
+            <strong class="dbru-font-color-base">{{ currentClientName }}</strong>
+            <small class="dbru-font-size-sm dbru-font-color-muted">Сессия этой вкладки выделена отдельным акцентом в списке.</small>
           </DbrCard>
         </div>
       </div>
 
       <div class="sessions-hero__actions">
         <RouterLink v-slot="{ navigate }" :to="ROUTES.CLIENTS" custom>
-          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+          <DbrButton variant="ghost" native-type="button" class="dbru-focus-visible" @click="navigate">
             Мои приложения
           </DbrButton>
         </RouterLink>
         <RouterLink v-slot="{ navigate }" :to="ROUTES.PROFILE" custom>
-          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+          <DbrButton variant="ghost" native-type="button" class="dbru-focus-visible" @click="navigate">
             Мой аккаунт
           </DbrButton>
         </RouterLink>
@@ -50,14 +50,14 @@
     </DbrCard>
 
     <DbrCard v-if="loadError" variant="bordered" class="sessions-state sessions-state--error">
-      <p class="dbru-text-sm" style="margin: 0">{{ loadError }}</p>
+      <p class="dbru-font-size-sm" style="margin: 0">{{ loadError }}</p>
     </DbrCard>
 
     <DbrCard v-else-if="loading" variant="bordered" class="sessions-state sessions-state--loading">
       <div class="sessions-loading">
         <div class="sessions-loading__head">
           <DbrLoader size="md" />
-          <span class="dbru-text-sm dbru-text-muted">Загружаем сессии и группируем их по приложениям…</span>
+          <span class="dbru-font-size-sm dbru-font-color-muted">Загружаем сессии и группируем их по приложениям…</span>
         </div>
         <div class="sessions-loading__grid">
           <DbrSkeleton height="calc(var(--dbru-control-height-lg) * 2)" radius="var(--dbru-radius-md)" />
@@ -69,8 +69,8 @@
 
     <DbrCard v-else-if="sessions.length === 0" variant="bordered" class="sessions-state">
       <div class="sessions-empty">
-        <span class="sessions-state__title dbru-text-main">Сессий пока нет</span>
-        <span class="dbru-text-sm dbru-text-muted">
+        <span class="sessions-state__title dbru-font-color-base">Сессий пока нет</span>
+        <span class="dbru-font-size-sm dbru-font-color-muted">
           Когда появятся входы в сервис, здесь будут показаны все устройства и точки входа.
         </span>
       </div>

@@ -2,17 +2,20 @@
   <DbrCard variant="bordered" as="section" class="dbru-surface session-client-group">
     <div class="session-client-group__hero">
       <div class="session-client-group__intro">
-        <p class="session-client-group__eyebrow dbru-text-xs dbru-text-muted">Клиент приложения</p>
-        <h2 class="session-client-group__title dbru-text-main">{{ clientName }}</h2>
-        <p class="session-client-group__subtitle dbru-text-base dbru-text-muted">
+        <p class="session-client-group__eyebrow dbru-font-size-xs dbru-font-color-muted">Клиент приложения</p>
+        <h2 class="session-client-group__title dbru-font-color-base">{{ clientName }}</h2>
+        <p class="session-client-group__subtitle dbru-font-size-base dbru-font-color-muted">
           Здесь собраны все входы, созданные для этого клиента. Каждая карточка ниже показывает устройство, служебные
           данные и хронологию активности отдельно.
         </p>
       </div>
 
       <div class="session-client-group__meta">
-        <DbrChip variant="ghost" class="session-client-group__slug">{{ clientSlug }}</DbrChip>
-        <DbrChip variant="primary">{{ activeCount }} активных</DbrChip>
+        <code class="session-client-group__slug dbru-font-size-xs dbru-font-color-muted">{{ clientSlug }}</code>
+        <span class="session-client-group__active dbru-font-size-sm">
+          <span aria-hidden="true"></span>
+          {{ activeCount }} активных
+        </span>
       </div>
     </div>
 
@@ -31,7 +34,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { DbrCard, DbrChip } from 'dobruniaui-vue';
+import { DbrCard } from 'dobruniaui-vue';
 import SessionRow from '@/components/SessionRow.vue';
 import type { SessionItem } from '@/types';
 
@@ -105,6 +108,22 @@ const activeCount = computed(() => props.sessions.filter((session) => session.st
 
 .session-client-group__slug {
   justify-self: flex-start;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.session-client-group__active {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dbru-space-1);
+  color: var(--dbru-color-success);
+  font-weight: var(--dbru-font-weight-semibold);
+}
+
+.session-client-group__active span {
+  width: var(--dbru-space-2);
+  height: var(--dbru-space-2);
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .session-client-group__list {

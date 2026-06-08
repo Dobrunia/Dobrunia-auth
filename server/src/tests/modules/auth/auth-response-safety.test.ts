@@ -63,7 +63,15 @@ function assertHttpErrorShape(body: Record<string, unknown>): void {
 }
 
 function assertBodyHasNoSensitiveLeak(body: unknown): void {
-  const raw = JSON.stringify(body);
+  const raw = JSON.stringify(body, (key, value) => {
+    if (
+      typeof value === 'string' &&
+      (key === 'accessToken' || key === 'refreshToken' || key === 'code')
+    ) {
+      return `<${key}>`;
+    }
+    return value;
+  });
   expect(raw).not.toMatch(SENSITIVE_PATTERNS);
 }
 

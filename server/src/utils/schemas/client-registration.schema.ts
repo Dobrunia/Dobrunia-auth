@@ -72,3 +72,42 @@ export const clientRegistrationBodySchema = z
   .strict();
 
 export type ClientRegistrationBody = z.infer<typeof clientRegistrationBodySchema>;
+
+export const clientUpdateBodySchema = z
+  .object({
+    name: z.string().trim().min(2).max(CLIENT_NAME_MAX).optional(),
+    slug: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(3)
+      .max(CLIENT_SLUG_MAX)
+      .regex(
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        'Use lowercase Latin letters, digits, and single hyphen-separated words'
+      )
+      .optional(),
+    description: z.string().trim().max(CLIENT_DESCRIPTION_MAX).optional(),
+    baseUrl: z.union([publicClientUrlSchema, z.literal('')]).optional(),
+    logoUrl: z.union([publicClientUrlSchema, z.literal('')]).optional(),
+    redirectUris: z
+      .array(publicClientUrlSchema)
+      .min(1)
+      .max(CLIENT_REDIRECT_URIS_MAX)
+      .superRefine((uris, ctx) => {
+        if (new Set(uris).size !== uris.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'redirectUris must not contain duplicates',
+          });
+        }
+      })
+      .optional(),
+    isActive: z.boolean().optional(),
+  })
+  .strict()
+  .refine((body) => Object.keys(body).length > 0, {
+    message: 'At least one field is required',
+  });
+
+export type ClientUpdateBody = z.infer<typeof clientUpdateBodySchema>;

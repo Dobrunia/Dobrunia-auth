@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="dbru-root dbru-bg dbru-text-base dbru-text-main app-shell">
+  <div id="app" class="dbru-root dbru-bg dbru-font-size-base dbru-font-color-base app-shell">
     <AppHealthHeader />
     <router-view />
     <Toaster position="top-center" rich-colors />

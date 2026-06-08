@@ -1,6 +1,6 @@
 {
   "name": "dobrunia-auth-server",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Dobrunia OAuth / SSO Service - Server",
   "main": "dist/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "dependencies": {
     "argon2": "^0.44.0",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.6.5",
     "zod": "^3.22.4"
@@ -29,6 +29,6 @@
     "supertest": "^7.2.2",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
-    "vitest": "^1.1.0"
+    "vitest": "^4.1.8"
   }
 }

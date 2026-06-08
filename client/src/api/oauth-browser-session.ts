@@ -1,26 +1,26 @@
 import { clientConfig } from '@/config';
 
 /**
- * Ставит httpOnly-куку OAuth-сессии на домене API (нужен `credentials: 'include'` + CORS credentials).
- * После успеха можно делать `location.assign(return_url)` на GET /oauth/authorize.
+ * Top-level POST ставит API-cookie в first-party контексте и не зависит от third-party cookie policy.
  */
-export async function establishOAuthBrowserSession(accessToken: string): Promise<void> {
-  const res = await fetch(`${clientConfig.apiUrl}/oauth/browser-session`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}` },
-    credentials: 'include',
-  });
-  if (res.status === 204) {
-    return;
+export function submitOAuthBrowserSession(
+  accessToken: string,
+  clientId: string,
+  returnUrl: string
+): void {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = `${clientConfig.apiUrl}/oauth/browser-session`;
+  form.style.display = 'none';
+
+  for (const [name, value] of Object.entries({ accessToken, clientId, returnUrl })) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.append(input);
   }
-  let msg = res.statusText || 'Request failed';
-  try {
-    const body = (await res.json()) as { error?: { message?: string } };
-    if (body?.error?.message) {
-      msg = body.error.message;
-    }
-  } catch {
-    /* ignore */
-  }
-  throw new Error(msg);
+
+  document.body.append(form);
+  form.submit();
 }

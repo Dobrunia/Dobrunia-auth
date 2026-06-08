@@ -7,6 +7,8 @@ export interface RegisteredClient {
   logoUrl: string | null;
   redirectUris: string[];
   isActive: boolean;
+  activeSessionCount: number;
+  activeUserCount: number;
   createdAt: string;
 }
 
@@ -17,4 +19,25 @@ export interface RegisterClientBody {
   baseUrl?: string;
   logoUrl?: string;
   redirectUris: string[];
+}
+
+export interface UpdateClientBody {
+  name?: string;
+  slug?: string;
+  description?: string;
+  baseUrl?: string;
+  logoUrl?: string;
+  redirectUris?: string[];
+  isActive?: boolean;
+}
+
+export interface ManagedClientSession {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userDisplayName: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  lastSeenAt: string | null;
+  createdAt: string;
 }

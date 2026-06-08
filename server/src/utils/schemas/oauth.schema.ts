@@ -19,3 +19,19 @@ export const oauthTokenBodySchema = z.object({
   redirect_uri: z.string().min(1),
   client_id: z.string().min(1),
 });
+
+export const oauthBrowserSessionBodySchema = z
+  .object({
+    clientId: z.string().trim().min(1),
+    accessToken: z.string().trim().min(1).optional(),
+    returnUrl: z.string().trim().url().optional(),
+  })
+  .strict()
+  .superRefine((body, ctx) => {
+    if (Boolean(body.accessToken) !== Boolean(body.returnUrl)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'accessToken and returnUrl must be provided together',
+      });
+    }
+  });

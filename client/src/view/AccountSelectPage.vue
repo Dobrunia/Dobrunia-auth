@@ -1,16 +1,16 @@
 <template>
   <div class="auth-page">
-    <h1 class="dbru-text-lg">Выбор приложения</h1>
-    <p class="dbru-text-muted dbru-text-base" style="line-height: var(--dbru-line-height-base)">
+    <h1 class="dbru-font-size-lg">Выбор приложения</h1>
+    <p class="dbru-font-color-muted dbru-font-size-base" style="line-height: var(--dbru-line-height-base)">
       Укажите, в какой проект вы входите — для него будут созданы сессия и токены.
     </p>
     <ul class="auth-page__list">
       <li v-for="c in clients" :key="c.slug">
         <DbrCard variant="bordered" as="article" class="dbru-surface">
-          <div class="dbru-text-main" style="font-weight: var(--dbru-font-weight-semibold)">
+          <div class="dbru-font-color-base" style="font-weight: var(--dbru-font-weight-semibold)">
             {{ c.name }}
           </div>
-          <p class="dbru-text-xs dbru-text-muted" style="margin: var(--dbru-space-2) 0 var(--dbru-space-3)">
+          <p class="dbru-font-size-xs dbru-font-color-muted" style="margin: var(--dbru-space-2) 0 var(--dbru-space-3)">
             slug: {{ c.slug }}
           </p>
           <div class="auth-page__actions">
@@ -32,11 +32,11 @@
         </DbrCard>
       </li>
     </ul>
-    <p class="dbru-text-xs dbru-text-muted" style="margin-top: var(--dbru-space-4)">
+    <p class="dbru-font-size-xs dbru-font-color-muted" style="margin-top: var(--dbru-space-4)">
       Список задаётся переменной <code>VITE_CLIENTS_JSON</code> при сборке (см. конфиг).
     </p>
     <RouterLink v-slot="{ navigate }" :to="ROUTES.HOME" custom>
-      <DbrButton variant="ghost" native-type="button" class="dbru-focusable" style="margin-top: var(--dbru-space-3)" @click="navigate">
+      <DbrButton variant="ghost" native-type="button" class="dbru-focus-visible" style="margin-top: var(--dbru-space-3)" @click="navigate">
         ← На главную
       </DbrButton>
     </RouterLink>

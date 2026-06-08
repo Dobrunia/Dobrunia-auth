@@ -1,34 +1,34 @@
 <template>
   <div class="auth-page auth-page--wide">
     <div class="profile-head">
-      <h1 class="dbru-text-lg">Мой аккаунт</h1>
+      <h1 class="dbru-font-size-lg">Мой аккаунт</h1>
       <div class="profile-head__actions">
         <RouterLink v-slot="{ navigate }" :to="ROUTES.CLIENTS" custom>
-          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+          <DbrButton variant="ghost" native-type="button" class="dbru-focus-visible" @click="navigate">
             Мои приложения
           </DbrButton>
         </RouterLink>
         <RouterLink v-slot="{ navigate }" :to="ROUTES.HOME" custom>
-          <DbrButton variant="ghost" native-type="button" class="dbru-focusable" @click="navigate">
+          <DbrButton variant="ghost" native-type="button" class="dbru-focus-visible" @click="navigate">
             Мои сессии
           </DbrButton>
         </RouterLink>
       </div>
     </div>
 
-    <p v-if="loadError" class="dbru-text-sm" style="color: var(--dbru-color-error)">{{ loadError }}</p>
+    <p v-if="loadError" class="dbru-font-size-sm" style="color: var(--dbru-color-error)">{{ loadError }}</p>
     <div v-else-if="loading" class="profile-loading">
       <DbrLoader size="md" />
-      <span class="dbru-text-sm dbru-text-muted">Загрузка…</span>
+      <span class="dbru-font-size-sm dbru-font-color-muted">Загрузка…</span>
     </div>
 
     <template v-else>
       <DbrCard variant="bordered" as="section" class="dbru-surface profile-card">
         <div class="profile-card__pad">
-          <h2 class="dbru-text-base dbru-text-main profile-card__title">Профиль</h2>
-          <p class="dbru-text-sm dbru-text-muted profile-email">
-            Email: <span class="dbru-text-main">{{ emailDisplay }}</span>
-            <span class="dbru-text-xs"> (нельзя сменить здесь)</span>
+          <h2 class="dbru-font-size-base dbru-font-color-base profile-card__title">Профиль</h2>
+          <p class="dbru-font-size-sm dbru-font-color-muted profile-email">
+            Email: <span class="dbru-font-color-base">{{ emailDisplay }}</span>
+            <span class="dbru-font-size-xs"> (нельзя сменить здесь)</span>
           </p>
           <form class="profile-form" @submit.prevent="onSave">
             <DbrInput v-model="username" label="Имя пользователя (ник)" name="username" autocomplete="username" size="md" />
@@ -42,10 +42,10 @@
               autocomplete="off"
               size="md"
             />
-            <p v-if="saveError" class="dbru-text-sm" style="color: var(--dbru-color-error); margin: 0">
+            <p v-if="saveError" class="dbru-font-size-sm" style="color: var(--dbru-color-error); margin: 0">
               {{ saveError }}
             </p>
-            <DbrButton variant="primary" native-type="submit" class="dbru-focusable" :disabled="saving">
+            <DbrButton variant="primary" native-type="submit" class="dbru-focus-visible" :disabled="saving">
               {{ saving ? '…' : 'Сохранить' }}
             </DbrButton>
           </form>
@@ -54,18 +54,18 @@
 
       <DbrCard variant="bordered" as="section" class="dbru-surface profile-card profile-card--danger">
         <div class="profile-card__pad">
-          <h2 class="dbru-text-base profile-card__title" style="color: var(--dbru-color-error)">Опасная зона</h2>
-          <p class="dbru-text-sm dbru-text-muted" style="margin: 0 0 var(--dbru-space-3)">
+          <h2 class="dbru-font-size-base profile-card__title" style="color: var(--dbru-color-error)">Опасная зона</h2>
+          <p class="dbru-font-size-sm dbru-font-color-muted" style="margin: 0 0 var(--dbru-space-3)">
             Удаление аккаунта необратимо: все сессии, токены и связанные данные в сервисе будут удалены (каскадом в
             базе).
           </p>
-          <p v-if="deleteError" class="dbru-text-sm" style="color: var(--dbru-color-error); margin: 0 0 var(--dbru-space-3)">
+          <p v-if="deleteError" class="dbru-font-size-sm" style="color: var(--dbru-color-error); margin: 0 0 var(--dbru-space-3)">
             {{ deleteError }}
           </p>
           <DbrButton
             variant="danger"
             native-type="button"
-            class="dbru-focusable"
+            class="dbru-focus-visible"
             :disabled="deleting"
             @click="onDeleteAccount"
           >

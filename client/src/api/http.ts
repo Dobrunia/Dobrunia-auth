@@ -1,6 +1,7 @@
 import { clientConfig } from '@/config';
 import { ROUTES } from '@/constants/app.constants';
 import { tokenStorage } from '@/lib/token-storage';
+import { fetchWithTimeout } from './fetch-with-timeout';
 
 export class ApiError extends Error {
   constructor(
@@ -12,14 +13,18 @@ export class ApiError extends Error {
   }
 }
 
-type ApiJsonInit = RequestInit & { auth?: boolean; _retryAfterRefresh?: boolean };
+type ApiJsonInit = RequestInit & {
+  auth?: boolean;
+  _retryAfterRefresh?: boolean;
+  redirectOnUnauthorized?: boolean;
+};
 
 async function tryRefreshTokens(): Promise<{ accessToken: string; refreshToken: string } | null> {
   const rt = tokenStorage.getRefresh();
   if (!rt) {
     return null;
   }
-  const res = await fetch(`${clientConfig.apiUrl}/auth/refresh`, {
+  const res = await fetchWithTimeout(`${clientConfig.apiUrl}/auth/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken: rt }),
@@ -43,7 +48,13 @@ async function tryRefreshTokens(): Promise<{ accessToken: string; refreshToken: 
 }
 
 export async function apiJson<T>(path: string, init: ApiJsonInit = {}): Promise<T> {
-  const { auth, _retryAfterRefresh, headers: h, ...rest } = init;
+  const {
+    auth,
+    _retryAfterRefresh,
+    redirectOnUnauthorized = true,
+    headers: h,
+    ...rest
+  } = init;
   const headers = new Headers(h);
   if (!headers.has('Content-Type') && rest.body != null && typeof rest.body === 'string') {
     headers.set('Content-Type', 'application/json');
@@ -55,7 +66,7 @@ export async function apiJson<T>(path: string, init: ApiJsonInit = {}): Promise<
     }
   }
 
-  const res = await fetch(`${clientConfig.apiUrl}${path}`, {
+  const res = await fetchWithTimeout(`${clientConfig.apiUrl}${path}`, {
     ...rest,
     headers,
   });
@@ -93,11 +104,13 @@ export async function apiJson<T>(path: string, init: ApiJsonInit = {}): Promise<
         }
       }
       tokenStorage.clear();
-      const loc = globalThis.location;
-      const here = `${loc.pathname}${loc.search}`;
-      const skipReturn = here === ROUTES.LOGIN || here.startsWith(`${ROUTES.LOGIN}?`);
-      const suffix = skipReturn ? '' : `?returnTo=${encodeURIComponent(here)}`;
-      loc.assign(`${ROUTES.LOGIN}${suffix}`);
+      if (redirectOnUnauthorized) {
+        const loc = globalThis.location;
+        const here = `${loc.pathname}${loc.search}`;
+        const skipReturn = here === ROUTES.LOGIN || here.startsWith(`${ROUTES.LOGIN}?`);
+        const suffix = skipReturn ? '' : `?returnTo=${encodeURIComponent(here)}`;
+        loc.assign(`${ROUTES.LOGIN}${suffix}`);
+      }
     }
 
     throw new ApiError(msg, res.status);

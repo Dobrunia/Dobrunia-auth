@@ -32,6 +32,23 @@ export async function isSessionActiveForUserAndClient(
   return list.length > 0;
 }
 
+export async function findActiveSessionIdForUserAndClient(
+  connection: PoolConnection,
+  userId: string,
+  clientId: string,
+  activeStatus: string
+): Promise<string | null> {
+  const [rows] = await connection.query(
+    `SELECT id FROM sessions
+     WHERE user_id = ? AND client_id = ? AND status = ?
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [userId, clientId, activeStatus]
+  );
+  const row = (rows as { id: string }[])[0];
+  return row?.id ?? null;
+}
+
 export async function revokeSessionById(
   connection: PoolConnection,
   sessionId: string,

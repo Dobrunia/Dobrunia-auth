@@ -56,10 +56,11 @@ export async function deleteSession(sessionId: string): Promise<void> {
   });
 }
 
-export async function fetchMe(): Promise<MeResponse> {
+export async function fetchMe(options: { redirectOnUnauthorized?: boolean } = {}): Promise<MeResponse> {
   return apiJson<MeResponse>('/auth/me', {
     method: 'GET',
     auth: true,
+    redirectOnUnauthorized: options.redirectOnUnauthorized,
   });
 }
 

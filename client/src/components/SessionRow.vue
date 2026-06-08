@@ -11,15 +11,18 @@
   >
     <header class="session-card__header">
       <div class="session-card__heading">
-        <p class="session-card__eyebrow dbru-text-xs dbru-text-muted">{{ isCurrent ? 'Текущая сессия' : 'Сессия аккаунта' }}</p>
-        <h3 class="session-card__title dbru-text-main">{{ agent.primaryLabel }}</h3>
-        <p class="session-card__subtitle dbru-text-base dbru-text-muted">{{ agent.secondaryLabel }}</p>
+        <p class="session-card__eyebrow dbru-font-size-xs dbru-font-color-muted">{{ isCurrent ? 'Текущая сессия' : 'Сессия аккаунта' }}</p>
+        <h3 class="session-card__title dbru-font-color-base">{{ agent.primaryLabel }}</h3>
+        <p class="session-card__subtitle dbru-font-size-base dbru-font-color-muted">{{ agent.secondaryLabel }}</p>
       </div>
 
       <div class="session-card__header-side">
-        <div class="session-card__badges">
-          <DbrChip :variant="statusChipVariant">{{ statusLabel }}</DbrChip>
-          <DbrChip v-if="isCurrent" variant="ghost">Этот браузер</DbrChip>
+        <div class="session-card__status-line">
+          <span class="session-card__status dbru-font-size-sm">
+            <span class="session-card__status-dot" aria-hidden="true"></span>
+            {{ statusLabel }}
+          </span>
+          <span v-if="isCurrent" class="dbru-font-size-sm dbru-font-color-muted">Этот браузер</span>
         </div>
 
         <DbrButton
@@ -27,13 +30,13 @@
           variant="danger"
           native-type="button"
           size="sm"
-          class="dbru-focusable session-card__action"
+          class="dbru-focus-visible session-card__action"
           :disabled="revoking || session.status !== 'active'"
           @click="$emit('revoke', session.id)"
         >
           {{ revoking ? 'Завершаем…' : 'Завершить сессию' }}
         </DbrButton>
-        <p v-else class="session-card__action-hint dbru-text-sm dbru-text-muted">
+        <p v-else class="session-card__action-hint dbru-font-size-sm dbru-font-color-muted">
           Эта вкладка завершает вход через кнопку «Выйти из текущей сессии» сверху.
         </p>
       </div>
@@ -41,102 +44,102 @@
 
     <div class="session-card__layout">
       <DbrCard as="section" variant="surface" class="session-card__panel dbru-surface">
-        <p class="session-card__section-label dbru-text-xs dbru-text-muted">Устройство и ПО</p>
+        <p class="session-card__section-label dbru-font-size-xs dbru-font-color-muted">Устройство и ПО</p>
 
         <div class="session-card__agent-list">
           <div class="session-card__agent-item">
             <SessionAgentIcon :name="agent.browser.icon" tone="browser" />
             <div>
-              <p class="session-card__agent-label dbru-text-xs dbru-text-muted">Браузер</p>
-              <p class="session-card__agent-value dbru-text-main">{{ agent.browser.name }}</p>
+              <p class="session-card__agent-label dbru-font-size-xs dbru-font-color-muted">Браузер</p>
+              <p class="session-card__agent-value dbru-font-color-base">{{ agent.browser.name }}</p>
             </div>
           </div>
 
           <div class="session-card__agent-item">
             <SessionAgentIcon :name="agent.os.icon" tone="os" />
             <div>
-              <p class="session-card__agent-label dbru-text-xs dbru-text-muted">Операционная система</p>
-              <p class="session-card__agent-value dbru-text-main">{{ agent.os.name }}</p>
+              <p class="session-card__agent-label dbru-font-size-xs dbru-font-color-muted">Операционная система</p>
+              <p class="session-card__agent-value dbru-font-color-base">{{ agent.os.name }}</p>
             </div>
           </div>
 
           <div class="session-card__agent-item">
             <SessionAgentIcon :name="agent.device.icon" tone="device" />
             <div>
-              <p class="session-card__agent-label dbru-text-xs dbru-text-muted">Тип устройства</p>
-              <p class="session-card__agent-value dbru-text-main">{{ agent.device.name }}</p>
+              <p class="session-card__agent-label dbru-font-size-xs dbru-font-color-muted">Тип устройства</p>
+              <p class="session-card__agent-value dbru-font-color-base">{{ agent.device.name }}</p>
             </div>
           </div>
         </div>
 
         <div class="session-card__ua-block">
-          <p class="session-card__fact-label dbru-text-xs dbru-text-muted">User-Agent</p>
-          <p class="session-card__ua dbru-text-sm" :title="session.userAgent ?? ''">
+          <p class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">User-Agent</p>
+          <p class="session-card__ua dbru-font-size-sm" :title="session.userAgent ?? ''">
             {{ session.userAgent || 'Сервис не передал строку user-agent для этой сессии.' }}
           </p>
         </div>
       </DbrCard>
 
       <DbrCard as="section" variant="surface" class="session-card__panel dbru-surface">
-        <p class="session-card__section-label dbru-text-xs dbru-text-muted">Данные сессии</p>
+        <p class="session-card__section-label dbru-font-size-xs dbru-font-color-muted">Данные сессии</p>
 
         <dl class="session-card__facts">
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">Статус</dt>
-            <dd class="session-card__fact-value dbru-text-main">{{ statusDescription }}</dd>
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">Статус</dt>
+            <dd class="session-card__fact-value dbru-font-color-base">{{ statusDescription }}</dd>
           </div>
 
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">IP-адрес</dt>
-            <dd class="session-card__fact-value dbru-text-main">{{ session.ipAddress || 'Не был передан' }}</dd>
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">IP-адрес</dt>
+            <dd class="session-card__fact-value dbru-font-color-base">{{ session.ipAddress || 'Не был передан' }}</dd>
           </div>
 
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">ID сессии</dt>
-            <dd class="session-card__fact-value session-card__fact-value--mono dbru-text-main">{{ session.id }}</dd>
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">ID сессии</dt>
+            <dd class="session-card__fact-value session-card__fact-value--mono dbru-font-color-base">{{ session.id }}</dd>
           </div>
 
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">Клиент</dt>
-            <dd class="session-card__fact-value dbru-text-main">
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">Клиент</dt>
+            <dd class="session-card__fact-value dbru-font-color-base">
               {{ session.clientName }}
-              <DbrChip variant="ghost" class="session-card__slug">{{ session.clientSlug }}</DbrChip>
+              <code class="session-card__slug dbru-font-size-xs dbru-font-color-muted">{{ session.clientSlug }}</code>
             </dd>
           </div>
         </dl>
       </DbrCard>
 
       <DbrCard as="section" variant="surface" class="session-card__panel dbru-surface">
-        <p class="session-card__section-label dbru-text-xs dbru-text-muted">Активность</p>
+        <p class="session-card__section-label dbru-font-size-xs dbru-font-color-muted">Активность</p>
 
         <dl class="session-card__facts">
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">Создана</dt>
-            <dd class="session-card__fact-value session-card__fact-value--stack dbru-text-main">
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">Создана</dt>
+            <dd class="session-card__fact-value session-card__fact-value--stack dbru-font-color-base">
               <span>{{ formatDateTime(session.createdAt) }}</span>
-              <small class="dbru-text-xs dbru-text-muted">{{ formatRelative(session.createdAt) }}</small>
+              <small class="dbru-font-size-xs dbru-font-color-muted">{{ formatRelative(session.createdAt) }}</small>
             </dd>
           </div>
 
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">Последняя активность</dt>
-            <dd class="session-card__fact-value session-card__fact-value--stack dbru-text-main">
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">Последняя активность</dt>
+            <dd class="session-card__fact-value session-card__fact-value--stack dbru-font-color-base">
               <span>{{ lastSeenPrimary }}</span>
-              <small class="dbru-text-xs dbru-text-muted">{{ lastSeenSecondary }}</small>
+              <small class="dbru-font-size-xs dbru-font-color-muted">{{ lastSeenSecondary }}</small>
             </dd>
           </div>
 
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">Завершена</dt>
-            <dd class="session-card__fact-value session-card__fact-value--stack dbru-text-main">
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">Завершена</dt>
+            <dd class="session-card__fact-value session-card__fact-value--stack dbru-font-color-base">
               <span>{{ revokedPrimary }}</span>
-              <small class="dbru-text-xs dbru-text-muted">{{ revokedSecondary }}</small>
+              <small class="dbru-font-size-xs dbru-font-color-muted">{{ revokedSecondary }}</small>
             </dd>
           </div>
 
           <div class="session-card__fact">
-            <dt class="session-card__fact-label dbru-text-xs dbru-text-muted">Причина</dt>
-            <dd class="session-card__fact-value dbru-text-main">{{ revokeReasonLabel }}</dd>
+            <dt class="session-card__fact-label dbru-font-size-xs dbru-font-color-muted">Причина</dt>
+            <dd class="session-card__fact-value dbru-font-color-base">{{ revokeReasonLabel }}</dd>
           </div>
         </dl>
       </DbrCard>
@@ -146,7 +149,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { DbrButton, DbrCard, DbrChip } from 'dobruniaui-vue';
+import { DbrButton, DbrCard } from 'dobruniaui-vue';
 import SessionAgentIcon from '@/components/SessionAgentIcon.vue';
 import { getSessionAgentDetails } from '@/lib/session-agent';
 import type { SessionItem } from '@/types';
@@ -178,12 +181,6 @@ const statusDescription = computed(() => {
     return 'Сессия уже закрыта и больше не может использоваться.';
   }
   return 'Состояние сессии не удалось интерпретировать автоматически.';
-});
-
-const statusChipVariant = computed((): 'primary' | 'ghost' | 'danger' => {
-  if (props.session.status === 'active') return 'primary';
-  if (props.session.status === 'revoked') return 'danger';
-  return 'ghost';
 });
 
 const lastSeenPrimary = computed(() => {
@@ -315,11 +312,26 @@ function formatRelative(iso: string) {
   min-width: min(20rem, 100%);
 }
 
-.session-card__badges {
+.session-card__status-line {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--dbru-space-2);
+}
+
+.session-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dbru-space-1);
+  color: var(--dbru-color-success);
+  font-weight: var(--dbru-font-weight-semibold);
+}
+
+.session-card__status-dot {
+  width: var(--dbru-space-2);
+  height: var(--dbru-space-2);
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .session-card__action {
@@ -426,7 +438,7 @@ function formatRelative(iso: string) {
 
 .session-card__slug {
   margin-left: 0.5rem;
-  vertical-align: middle;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
 @media (max-width: 1100px) {
@@ -453,7 +465,7 @@ function formatRelative(iso: string) {
     min-width: 0;
   }
 
-  .session-card__badges {
+  .session-card__status-line {
     justify-content: flex-start;
   }
 

@@ -16,7 +16,7 @@
         :to="{ path: ROUTES.REGISTER, query: registerQuery }"
         custom
       >
-        <DbrButton variant="ghost" size="sm" native-type="button" class="dbru-focusable" @click="navigate">
+        <DbrButton variant="ghost" size="sm" native-type="button" class="dbru-focus-visible" @click="navigate">
           Регистрация
         </DbrButton>
       </RouterLink>
@@ -30,11 +30,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { DbrButton } from 'dobruniaui-vue';
 import { login } from '@/api/auth-api';
 import { ApiError } from '@/api/http';
-import { establishOAuthBrowserSession } from '@/api/oauth-browser-session';
+import { submitOAuthBrowserSession } from '@/api/oauth-browser-session';
 import AuthCredentialsForm from '@/components/AuthCredentialsForm.vue';
 import { clientConfig } from '@/config';
 import { ROUTES } from '@/constants/app.constants';
-import { isAllowedOAuthReturnUrl } from '@/lib/oauth-return-url';
+import {
+  isAllowedOAuthReturnUrl,
+  markOAuthBridgeAttempt,
+} from '@/lib/oauth-return-url';
 import { tokenStorage } from '@/lib/token-storage';
 
 const route = useRoute();
@@ -49,6 +52,9 @@ const registerQuery = computed(() => {
   if (route.query.oauth === '1' && typeof route.query.return_url === 'string') {
     base.oauth = '1';
     base.return_url = route.query.return_url;
+    if (route.query.reauth === '1') {
+      base.reauth = '1';
+    }
   }
   return base;
 });
@@ -73,8 +79,11 @@ async function onSubmit() {
         ? route.query.return_url
         : '';
     if (oauthReturn && isAllowedOAuthReturnUrl(oauthReturn)) {
-      await establishOAuthBrowserSession(res.accessToken);
-      globalThis.location.assign(oauthReturn);
+      submitOAuthBrowserSession(
+        res.accessToken,
+        clientSlug.value,
+        markOAuthBridgeAttempt(oauthReturn)
+      );
       return;
     }
     const returnTo = typeof route.query.returnTo === 'string' ? route.query.returnTo : ROUTES.HOME;

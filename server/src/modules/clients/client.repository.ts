@@ -1,7 +1,9 @@
-import type { PoolConnection } from 'mysql2/promise';
+import type { PoolConnection, ResultSetHeader } from 'mysql2/promise';
 import type {
+  ManagedClientSessionDto,
   RegisteredClientDto,
   RegisterClientParams,
+  UpdateClientParams,
 } from '../../types/client-registration.types';
 import type { ClientRow, ClientRowWithOAuth } from '../../types/client.types';
 
@@ -14,6 +16,21 @@ interface OwnedClientRow {
   logo_url: string | null;
   oauth_redirect_uris: unknown;
   is_active: number | boolean;
+  active_session_count: number | string;
+  active_user_count: number | string;
+  created_at: Date | string;
+}
+
+interface ManagedClientSessionRow {
+  id: string;
+  user_id: string;
+  email: string;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  last_seen_at: Date | string | null;
   created_at: Date | string;
 }
 
@@ -91,15 +108,23 @@ function parseOauthRedirectUris(raw: unknown): string[] {
 
 export async function listClientsByOwner(
   connection: PoolConnection,
-  ownerUserId: string
+  ownerUserId: string,
+  activeStatus: string
 ): Promise<RegisteredClientDto[]> {
   const [rows] = await connection.query(
-    `SELECT id, name, slug, description, base_url, logo_url,
-            oauth_redirect_uris, is_active, created_at
-     FROM clients
-     WHERE owner_user_id = ?
-     ORDER BY created_at DESC`,
-    [ownerUserId]
+    `SELECT
+       c.id, c.name, c.slug, c.description, c.base_url, c.logo_url,
+       c.oauth_redirect_uris, c.is_active, c.created_at,
+       COUNT(s.id) AS active_session_count,
+       COUNT(DISTINCT s.user_id) AS active_user_count
+     FROM clients c
+     LEFT JOIN sessions s ON s.client_id = c.id AND s.status = ?
+     WHERE c.owner_user_id = ?
+     GROUP BY
+       c.id, c.name, c.slug, c.description, c.base_url, c.logo_url,
+       c.oauth_redirect_uris, c.is_active, c.created_at
+     ORDER BY c.created_at DESC`,
+    [activeStatus, ownerUserId]
   );
 
   return (rows as OwnedClientRow[]).map((row) => ({
@@ -111,11 +136,154 @@ export async function listClientsByOwner(
     logoUrl: row.logo_url,
     redirectUris: parseOauthRedirectUris(row.oauth_redirect_uris),
     isActive: Boolean(row.is_active),
+    activeSessionCount: Number(row.active_session_count),
+    activeUserCount: Number(row.active_user_count),
     createdAt:
       row.created_at instanceof Date
         ? row.created_at.toISOString()
         : new Date(row.created_at).toISOString(),
   }));
+}
+
+export async function findClientByIdForOwner(
+  connection: PoolConnection,
+  clientId: string,
+  ownerUserId: string,
+  activeStatus: string
+): Promise<RegisteredClientDto | null> {
+  const [rows] = await connection.query(
+    `SELECT
+       c.id, c.name, c.slug, c.description, c.base_url, c.logo_url,
+       c.oauth_redirect_uris, c.is_active, c.created_at,
+       COUNT(s.id) AS active_session_count,
+       COUNT(DISTINCT s.user_id) AS active_user_count
+     FROM clients c
+     LEFT JOIN sessions s ON s.client_id = c.id AND s.status = ?
+     WHERE c.id = ? AND c.owner_user_id = ?
+     GROUP BY
+       c.id, c.name, c.slug, c.description, c.base_url, c.logo_url,
+       c.oauth_redirect_uris, c.is_active, c.created_at
+     LIMIT 1`,
+    [activeStatus, clientId, ownerUserId]
+  );
+  const row = (rows as OwnedClientRow[])[0];
+  if (!row) {
+    return null;
+  }
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    baseUrl: row.base_url,
+    logoUrl: row.logo_url,
+    redirectUris: parseOauthRedirectUris(row.oauth_redirect_uris),
+    isActive: Boolean(row.is_active),
+    activeSessionCount: Number(row.active_session_count),
+    activeUserCount: Number(row.active_user_count),
+    createdAt:
+      row.created_at instanceof Date
+        ? row.created_at.toISOString()
+        : new Date(row.created_at).toISOString(),
+  };
+}
+
+export async function updateClientByOwner(
+  connection: PoolConnection,
+  clientId: string,
+  ownerUserId: string,
+  params: UpdateClientParams
+): Promise<boolean> {
+  const [result] = await connection.execute<ResultSetHeader>(
+    `UPDATE clients SET
+       name = ?,
+       slug = ?,
+       description = ?,
+       base_url = ?,
+       logo_url = ?,
+       oauth_redirect_uris = ?,
+       is_active = ?,
+       updated_at = CURRENT_TIMESTAMP(3)
+     WHERE id = ? AND owner_user_id = ?`,
+    [
+      params.name,
+      params.slug,
+      params.description,
+      params.baseUrl,
+      params.logoUrl,
+      JSON.stringify(params.redirectUris),
+      params.isActive ? 1 : 0,
+      clientId,
+      ownerUserId,
+    ]
+  );
+  return result.affectedRows > 0;
+}
+
+export async function deleteClientByOwner(
+  connection: PoolConnection,
+  clientId: string,
+  ownerUserId: string
+): Promise<boolean> {
+  const [result] = await connection.execute<ResultSetHeader>(
+    'DELETE FROM clients WHERE id = ? AND owner_user_id = ?',
+    [clientId, ownerUserId]
+  );
+  return result.affectedRows > 0;
+}
+
+export async function listActiveSessionsForOwnedClient(
+  connection: PoolConnection,
+  clientId: string,
+  activeStatus: string
+): Promise<ManagedClientSessionDto[]> {
+  const [rows] = await connection.query(
+    `SELECT
+       s.id, s.user_id, s.ip_address, s.user_agent, s.last_seen_at, s.created_at,
+       u.email, u.username, u.first_name, u.last_name
+     FROM sessions s
+     INNER JOIN users u ON u.id = s.user_id
+     WHERE s.client_id = ? AND s.status = ?
+     ORDER BY (s.last_seen_at IS NULL), s.last_seen_at DESC, s.created_at DESC`,
+    [clientId, activeStatus]
+  );
+
+  return (rows as ManagedClientSessionRow[]).map((row) => {
+    const fullName = [row.first_name, row.last_name].filter(Boolean).join(' ');
+    return {
+      id: row.id,
+      userId: row.user_id,
+      userEmail: row.email,
+      userDisplayName: fullName || row.username || null,
+      ipAddress: row.ip_address,
+      userAgent: row.user_agent,
+      lastSeenAt:
+        row.last_seen_at == null
+          ? null
+          : row.last_seen_at instanceof Date
+            ? row.last_seen_at.toISOString()
+            : new Date(row.last_seen_at).toISOString(),
+      createdAt:
+        row.created_at instanceof Date
+          ? row.created_at.toISOString()
+          : new Date(row.created_at).toISOString(),
+    };
+  });
+}
+
+export async function findActiveSessionForClient(
+  connection: PoolConnection,
+  sessionId: string,
+  clientId: string,
+  activeStatus: string
+): Promise<boolean> {
+  const [rows] = await connection.query(
+    `SELECT 1 AS ok FROM sessions
+     WHERE id = ? AND client_id = ? AND status = ?
+     LIMIT 1`,
+    [sessionId, clientId, activeStatus]
+  );
+  return (rows as { ok: number }[]).length > 0;
 }
 
 /**

@@ -1,8 +1,8 @@
 <template>
   <div class="auth-page auth-page--narrow">
-    <h1 class="dbru-text-lg">{{ title }}</h1>
-    <p class="dbru-text-sm dbru-text-muted">
-      Клиент: <strong class="dbru-text-main">{{ clientSlug }}</strong>
+    <h1 class="dbru-font-size-lg">{{ title }}</h1>
+    <p class="dbru-font-size-sm dbru-font-color-muted">
+      Клиент: <strong class="dbru-font-color-base">{{ clientSlug }}</strong>
     </p>
     <form class="auth-page__form" @submit.prevent="$emit('submit')">
       <DbrInput
@@ -25,12 +25,12 @@
         size="md"
         @update:model-value="$emit('update:password', $event)"
       />
-      <p v-if="error" class="dbru-text-sm auth-page__error">{{ error }}</p>
-      <DbrButton variant="primary" native-type="submit" :disabled="loading" class="dbru-focusable">
+      <p v-if="error" class="dbru-font-size-sm auth-page__error">{{ error }}</p>
+      <DbrButton variant="primary" native-type="submit" :disabled="loading" class="dbru-focus-visible">
         {{ loading ? '…' : submitLabel }}
       </DbrButton>
     </form>
-    <p class="dbru-text-sm dbru-text-muted auth-page__footer">
+    <p class="dbru-font-size-sm dbru-font-color-muted auth-page__footer">
       <slot name="footer" />
     </p>
   </div>
